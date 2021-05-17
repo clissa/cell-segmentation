@@ -1,3 +1,17 @@
+### USER-DEFINED
+
+# data folders
+dataset/
+mount_pandora/
+
+# env
+singularity/
+
+# extras
+external_resources/
+
+### TEMPLATE
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
