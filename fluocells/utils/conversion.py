@@ -12,6 +12,14 @@
 #  #limitations under the License.
 #
 #  """
+#  Created on 5/18/21, 11:49 AM
+#  @author: Luca Clissa
+#
+#
+#  Run using fastai/image_processing environment
+#  """
+#
+#  """
 #  Created on 5/18/21, 11:48 AM
 #  @author: Luca Clissa
 #
@@ -126,101 +134,100 @@ annotator_dict = {
 }
 
 
-def format_annotation(p: Path, mask: np.array, task_id: int, proj_id: int =
+def format_annotation(p: Path, mask: np.array, task_id: int, proj_id: int = 2, annotator_dict: dict = annotator_dict,
+                      data_path: str = "data/upload"):
+    """
+    Return dictionary of annotations from binary mask in a format compatible with Label Studio.
 
-2, annotator_dict: dict = annotator_dict, data_path: str = "data/upload"):
-"""
-Return dictionary of annotations from binary mask in a format compatible with Label Studio.
+    :param p: path to image
+    :param mask: binary mask
+    :param task_id: task id for Label Studio
+    :param proj_id: id of Label Studio project
+    :param annotator_dict: dictionary with info about the annotator in the Label Studio project
+    :return:
+    """
+    import time
 
-:param p: path to image
-:param mask: binary mask
-:param task_id: task id for Label Studio
-:param proj_id: id of Label Studio project
-:param annotator_dict: dictionary with info about the annotator in the Label Studio project
-:return:
-"""
-import time
+    t1 = time.time()
+    tmstmp_start = datetime.datetime.now(tz=pytz.utc).astimezone().isoformat()
 
-t1 = time.time()
-tmstmp_start = datetime.datetime.now(tz=pytz.utc).astimezone().isoformat()
+    mask_width = mask.shape[1]
+    mask_height = mask.shape[0]
 
-mask_width = mask.shape[1]
-mask_height = mask.shape[0]
+    # annotations will be displayed all with id=0
+    annotation_id = 1
+    output_dict = {
+        "id": task_id,
+        "annotations": [],
+        "predictions": [],
+        "file_upload": p.name,
+        "data": {"image": f"{data_path}/{p.name}"},
+        "meta": {},
+        "created_at": tmstmp_start,
+        "updated_at": tmstmp_start,
+        "project": proj_id
+    }
 
-# annotations will be displayed all with id=0
-annotation_id = 1
-output_dict = {
-    "id": task_id,
-    "annotations": [],
-    "predictions": [],
-    "file_upload": p.name,
-    "data": {"image": f"{data_path}/{p.name}"},
-    "meta": {},
-    "created_at": tmstmp_start,
-    "updated_at": tmstmp_start,
-    "project": proj_id
-}
+    result = []
 
-result = []
+    # iterate over objects to get unique contours for each object
+    label, n_objs = skimage.measure.label(mask, return_num=True)
+    for id_obj, obj in enumerate(skimage.measure.regionprops(label)):
+        LS_coordinates = []
+        # add contour only if area is greater than 100 pixels
+        if obj.area > 100:
+            # create black image an attach the object patch
+            obj_mask = np.zeros([mask_height, mask_width], dtype=np.uint8)
+            obj_mask[obj._slice] = obj.image
 
-# iterate over objects to get unique contours for each object
-label, n_objs = skimage.measure.label(mask, return_num=True)
-for id_obj, obj in enumerate(skimage.measure.regionprops(label)):
-    LS_coordinates = []
-    # add contour only if area is greater than 100 pixels
-    if obj.area > 100:
-        # create black image an attach the object patch
-        obj_mask = np.zeros([mask_height, mask_width], dtype=np.uint8)
-        obj_mask[obj._slice] = obj.image
+            # extend LS_coordinates with all the contours segments of the object
+            contours = skimage.measure.find_contours(
+                obj_mask, fully_connected='high', positive_orientation='high')
+            for contour in contours:
+                LS_coordinates.extend(mask2lspoly(
+                    contour, mask_height, mask_width))
 
-        # extend LS_coordinates with all the contours segments of the object
-        contours = skimage.measure.find_contours(
-            obj_mask, fully_connected='high', positive_orientation='high')
-        for contour in contours:
-            LS_coordinates.extend(mask2lspoly(
-                contour, mask_height, mask_width))
+            # downsample contour coordinates to 40 points
+            idx = np.round(np.linspace(0, len(LS_coordinates) - 1, 40)).astype(int)
+            LS_coordinates = np.array(LS_coordinates).round(2)
+            LS_coordinates = LS_coordinates[idx].tolist()
 
-        # downsample contour coordinates to 40 points
-        idx = np.round(np.linspace(0, len(LS_coordinates) - 1, 40)).astype(int)
-        LS_coordinates = np.array(LS_coordinates).round(2)
-        LS_coordinates = LS_coordinates[idx].tolist()
+            # populate object annotation dictionary
+            contour_obj = {
+                "value": {
+                    "points": LS_coordinates,
+                    "polygonlabels": [
+                        "Cell"
+                    ]
+                },
+                "original_width": mask_width,
+                "original_height": mask_height,
+                "image_rotation": 0,
+                "id": str(id_obj),
+                "from_name": "label",
+                "to_name": "image",
+                "type": "polygonlabels"
+            }
 
-        # populate object annotation dictionary
-        contour_obj = {
-            "value": {
-                "points": LS_coordinates,
-                "polygonlabels": [
-                    "Cell"
-                ]
-            },
-            "original_width": mask_width,
-            "original_height": mask_height,
-            "image_rotation": 0,
-            "id": str(id_obj),
-            "from_name": "label",
-            "to_name": "image",
-            "type": "polygonlabels"
-        }
+            result.append(contour_obj)
 
-        result.append(contour_obj)
+    # tmstmp_stop = datetime.datetime.now(tz=pytz.utc).astimezone().isoformat()
+    t2 = time.time()
 
-# tmstmp_stop = datetime.datetime.now(tz=pytz.utc).astimezone().isoformat()
-t2 = time.time()
+    annotations = {
+        "id": annotation_id,
+        "state": {},
+        "result": result,
+        "was_cancelled": False,
+        "ground_truth": True,
+        "created_at": tmstmp_start,
+        "updated_at": tmstmp_start,
+        "lead_time": np.round(t2 - t1, 3),
+        "prediction": {},
+        "result_count": n_objs,
+        "task": task_id,
+        "completed_by": annotator_dict
+    }
 
-annotations = {
-    "id": annotation_id,
-    "state": {},
-    "result": result,
-    "was_cancelled": False,
-    "ground_truth": True,
-    "created_at": tmstmp_start,
-    "updated_at": tmstmp_start,
-    "lead_time": np.round(t2 - t1, 3),
-    "prediction": {},
-    "result_count": n_objs,
-    "task": task_id,
-    "completed_by": annotator_dict
-}
-
-output_dict["annotations"].append(annotations)
-return output_dict
+    output_dict["annotations"].append(annotations)
+    return output_dict
