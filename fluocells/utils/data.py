@@ -12,6 +12,14 @@
 #  #limitations under the License.
 #
 #  """
+#  Created on 5/18/21, 12:36 PM
+#  @author: Luca Clissa
+#
+#
+#  Run using fastai/image_processing environment
+#  """
+#
+#  """
 #  Created on 5/18/21, 12:28 PM
 #  @author: Luca Clissa
 #
@@ -26,24 +34,23 @@
 #
 #  Run using image_processing environment
 #  """
-
 import pandas as pd
-
-pd.options.display.max_columns = 8
-from matplotlib import pyplot as plt
 import skimage
 import skimage.io
+from matplotlib import pyplot as plt
 from skimage.measure import label, regionprops
 from skimage.morphology import remove_small_objects
 
+pd.options.display.max_columns = 8
+
 
 def check_noise_in_masks(masks_path, debug_path):
-    '''
+    """
     Read ground-truth masks and save separate images for each object detected with skimage.measure.label()
     :param masks_path: Pathlib.Path() to masks folder
     :param debug_path: Pathlib.Path() where to store single objects (created if don't exist)
     :return:
-    '''
+    """
     # from scipy import ndimage
     for p in masks_path.iterdir():
         # read tif image
@@ -93,12 +100,11 @@ def remove_noise_from_masks(min_obj_size, connectivity, masks_path, out_path):
 
 
 def compute_masks_stats(masks_path):
-    '''
+    """
     Read ground-truth masks and compute metrics for cell counts and shapes
     :param masks_path: Pathlib.Path() to masks folder
     :return:
-    '''
-    import pandas as pd
+    """
     stats_df = pd.DataFrame(data=None,
                             columns=['img_name', 'n_cells', 'cell_id', 'area', 'min_axis_length', 'max_axis_length'])
 
@@ -137,7 +143,10 @@ def copy_yellow_originals(paths_list, out_path):
         image = skimage.io.imread(p)
 
         # fix filename and change format
-        out_path = out_path if out_path.name == 'images' else out_path / 'images'
+        if out_path.name == 'images':
+            out_path = out_path
+        else:
+            out_path = out_path / 'images'
         out_path.mkdir(parents=True, exist_ok=True)
         filename = p.name.split('.')[0] + '.png'
         outname = str(out_path / fix_mask_filename(filename))
