@@ -12,6 +12,14 @@
 #  #limitations under the License.
 #
 #  """
+#  Created on 5/18/21, 11:56 AM
+#  @author: Luca Clissa
+#
+#
+#  Run using fastai/image_processing environment
+#  """
+#
+#  """
 #  Created on 5/18/21, 11:49 AM
 #  @author: Luca Clissa
 #
@@ -102,7 +110,7 @@ def lstask2mask(task_annotation: list, img_path=None):
             polygon = np.array(lspoly2mask(obj['value']['points'], img_h, img_w))
             obj_mask = skimage.draw.polygon2mask(image_shape, polygon)
             reco_mask += obj_mask
-    elif image_path is not None:
+    elif img_path is not None:
         # when no annotations are present then read the to get its shape
         img = skimage.io.imread(img_path)
         reco_mask = np.zeros(img.shape, dtype=np.uint8)
@@ -144,7 +152,8 @@ def format_annotation(p: Path, mask: np.array, task_id: int, proj_id: int = 2, a
     :param task_id: task id for Label Studio
     :param proj_id: id of Label Studio project
     :param annotator_dict: dictionary with info about the annotator in the Label Studio project
-    :return:
+    :param data_path: task parent path in LS API database
+    :return: annotation dict in LS compatible json format
     """
     import time
 
