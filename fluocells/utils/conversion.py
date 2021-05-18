@@ -12,6 +12,14 @@
 #  #limitations under the License.
 #
 #  """
+#  Created on 5/18/21, 11:48 AM
+#  @author: Luca Clissa
+#
+#
+#  Run using fastai/image_processing environment
+#  """
+#
+#  """
 #  Created on 5/18/21, 11:47 AM
 #  @author: Luca Clissa
 #
@@ -19,9 +27,9 @@
 #  Run using fastai/image_processing environment
 #  """
 
+import datetime
 from pathlib import Path
 
-import datetime
 import numpy as np
 import pytz
 import skimage
@@ -118,10 +126,9 @@ annotator_dict = {
 }
 
 
-def format_annotation(p: Path, mask: np.array, task_id: int, proj_idint:=
+def format_annotation(p: Path, mask: np.array, task_id: int, proj_id: int =
 
-
-    2, annotator_dict: dict = annotator_dict, data_path:str = "data/upload"):
+2, annotator_dict: dict = annotator_dict, data_path: str = "data/upload"):
 """
 Return dictionary of annotations from binary mask in a format compatible with Label Studio.
 
