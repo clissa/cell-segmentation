@@ -1,6 +1,4 @@
 #!/bin/bash
-#
-# !/usr/bin/env python3
 #  -*- coding: utf-8 -*-
 #  Copyright (c) 2021.  Luca Clissa
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +20,16 @@
 # """
 #
 
-# generate annotation df
-python get_annotations_df.py $1 $2
-
-# compute objects stats
-python get_stats_df.py $1 $2
+CTRL=${3:-preproc}
+DEFAULT="preproc"
+echo $CTRL; echo $DEFAULT
+if [[ "$CTRL" == "$DEFAULT" ]]; 
+then
+    # generate annotation dfp
+    python get_annotations_df.py $1 $2
+    # compute objects stats
+    python get_stats_df.py $1 $2
+fi
 
 # zip dataset
 cd dataset
