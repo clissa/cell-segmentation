@@ -12,6 +12,14 @@
 #  #limitations under the License.
 #
 #  """
+#  Created on 6/16/21, 5:09 PM
+#  @author: Luca Clissa
+#
+#
+#  Run using fastai/image_processing environment
+#  """
+#
+#  """
 #  Created on 5/18/21, 12:36 PM
 #  @author: Luca Clissa
 #
@@ -34,12 +42,15 @@
 #
 #  Run using image_processing environment
 #  """
+import numpy as np
 import pandas as pd
 import skimage
 import skimage.io
+import skimage.transform
 from matplotlib import pyplot as plt
 from skimage.measure import label, regionprops
 from skimage.morphology import remove_small_objects
+from tqdm import tqdm
 
 pd.options.display.max_columns = 8
 
@@ -106,16 +117,22 @@ def compute_masks_stats(masks_path):
     :return:
     """
     stats_df = pd.DataFrame(data=None,
-                            columns=['img_name', 'n_cells', 'cell_id', 'area', 'min_axis_length', 'max_axis_length'])
-
-    for idx_image, p in enumerate(masks_path.iterdir()):
+                            columns=['img_name', 'n_cells', 'cell_id', 'area', 'min_axis_length', 'max_axis_length',
+                                     'equivalent_diameter', 'feret_diameter_max',
+                                     # 'min_intensity', 'mean_intensity', 'max_intensity'
+                                     ])
+    paths = list(masks_path.iterdir())
+    for idx_image, p in tqdm(enumerate(paths), total=len(paths)):
         mask = skimage.io.imread(p, as_gray=True)
         skimage_label, n_objs = label(mask, connectivity=1, return_num=True)
-        for idx_obj, obj in enumerate(regionprops(skimage_label, coordinates='xy')):
-            stats_df.loc[idx_image + idx_obj] = [
-                p.name.split('.')[0], n_objs, idx_obj, obj.area, obj.minor_axis_length, obj.major_axis_length]
+        for idx_obj, obj in enumerate(regionprops(skimage_label)):  # , coordinates='xy')):
+            stats_df.loc[stats_df.shape[0] + 1] = [
+                p.name.split('.')[0], n_objs, idx_obj, obj.area, obj.minor_axis_length, obj.major_axis_length,
+                obj.equivalent_diameter, obj.feret_diameter_max,
+                # obj.min_intensity, obj.mean_intensity, obj.max_intensity
+            ]
 
-    stats_df.round(4).to_csv(masks_path.parent / 'stats_df.csv')
+    stats_df.round(4).to_csv(masks_path.parent / 'stats_df.csv', index=False)
     return stats_df
 
 
@@ -139,7 +156,7 @@ def get_yellow_filenames(source_paths):
 
 
 def copy_yellow_originals(paths_list, out_path):
-    for p in paths_list:
+    for p in tqdm(paths_list, total=len(paths_list)):
         image = skimage.io.imread(p)
 
         # fix filename and change format
@@ -150,8 +167,56 @@ def copy_yellow_originals(paths_list, out_path):
         out_path.mkdir(parents=True, exist_ok=True)
         filename = p.name.split('.')[0] + '.png'
         outname = str(out_path / fix_mask_filename(filename))
-        plt.imsave(fname=outname, arr=image)
+        skimage.io.imsave(fname=outname, arr=image, check_contrast=False)
     return
+
+
+# TODO: not working with yellow images (because of image ranges?). Consider whether to extend it
+def get_name2num_map(paths_name_list, paths_number_list, is_close_thresh=0.1, similarity_thresh=0.95, resize=False,
+                     shape=(512, 512, 3)):
+    """
+    Retrieve mapping between original and numbered filenames by pixelwise comparison based on np.isclose and
+    similarity threshold.
+    :param paths_name_list: list of paths to images with original names 
+    :param paths_number_list: list of paths to images with numbered names
+    :param is_close_thresh: threshold for np.isclose()
+    :param similarity_thresh: percentage threshold for similarity
+    :param resize: (bool) whether to resize original images (default: False)
+    :param shape: tuple (H, W, C) indicating the shape for resizing if `resize=True` (default=(512, 512, 3))
+    :return: 
+    """
+    paths_name_list = paths_name_list.copy()
+    paths_number_list = paths_number_list.copy()
+    names_map = {}
+    test_images = []
+    for p_name in tqdm(paths_name_list, total=len(paths_name_list)):
+        image_name = skimage.io.imread(p_name)
+        if resize:
+            image_name = skimage.transform.resize(image_name, shape)  # [0,1] format
+            scale = 255.
+        else:
+            scale = 1.
+        for p_number in paths_number_list:
+            image_number = skimage.io.imread(p_number) / scale  # [0, 1] format
+            try:
+                # custom np.allclose(): the atol threshold can be tuned and a similarity threshold is added.
+                # Experiments suggest that `is_close_thresh`=0.01 leads to similarity>0.97 with matching image
+                # while >~0.6 with the others
+                similarity = np.sum(np.isclose(image_name, image_number, atol=is_close_thresh)) / np.prod(shape)
+                same_image = similarity > similarity_thresh
+                # same_image = np.allclose(image_name, image_number)
+            except ValueError:
+                similarity = np.sum(
+                    np.isclose(image_name[:, :, :3], image_number[:, :, :3], atol=is_close_thresh)) / np.prod(shape)
+                same_image = similarity > similarity_thresh
+                # same_image = np.allclose(image_name[:, :, :3], image_number[:, :, :3])
+            if same_image:
+                names_map[p_name.name] = p_number.name
+                paths_number_list.remove(p_number)
+                continue
+        if names_map.get(p_name.name, None) is None:
+            test_images.append(p_name.name)
+    return names_map, test_images
 
 
 # TODO: create customisable pre-processing script to clean the masks + compute stats
