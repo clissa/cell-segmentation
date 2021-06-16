@@ -18,7 +18,7 @@
 # @author: Luca Clissa
 #
 #
-# Run using fastai/image_processing environment
+# Run using image_processing environment
 # """
 #
 
