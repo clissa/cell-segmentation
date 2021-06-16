@@ -20,15 +20,18 @@
 # """
 #
 
-CTRL=${3:-preproc}
+CTRL=${3:-pass}
 DEFAULT="preproc"
-echo $CTRL; echo $DEFAULT
-if [[ "$CTRL" == "$DEFAULT" ]]; 
+
+if [[ "$CTRL" == "$DEFAULT" ]];
 then
-    # generate annotation dfp
-    python get_annotations_df.py $1 $2
-    # compute objects stats
-    python get_stats_df.py $1 $2
+  # generate annotation dfp
+  echo "Generating annotations in multiple formats"
+  python get_annotations_df.py $1 $2
+
+  # compute objects stats
+  echo "Computing objects stats"
+  python get_stats_df.py $1 $2
 fi
 
 # zip dataset
