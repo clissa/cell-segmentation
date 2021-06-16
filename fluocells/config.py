@@ -46,5 +46,13 @@ DATA_PATH_r = REPO_PATH / 'dataset/red'
 DATA_PATH_y = REPO_PATH / 'dataset/yellow'
 DATA_PATH_g = REPO_PATH / 'dataset/green'
 
+IMG_PATH_r = DATA_PATH_r / 'original/images'
+IMG_PATH_y = DATA_PATH_y / 'original/images'
+IMG_PATH_g = DATA_PATH_g / 'original/images'
+
+IMG_PATH_unlabelled_r = DATA_PATH_r / 'unlabelled'
+IMG_PATH_unlabelled_y = DATA_PATH_y / 'unlabelled'
+IMG_PATH_unlabelled_g = DATA_PATH_g / 'unlabelled'
+
 # DATA_DEBUG_PATH = DATA_PATH / 'debug'
 # DATA_DEBUG_PATH.mkdir(exist_ok=True, parents=True)
