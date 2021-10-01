@@ -21,6 +21,7 @@ from pathlib import Path
 
 # custom
 import wandb
+from fluocells.config import IMG_PATH_r, IMG_PATH_y
 
 # add repo root path to pythonpath
 sys.path.insert(0, str(Path.cwd().parent))
