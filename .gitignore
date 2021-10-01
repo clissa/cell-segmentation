@@ -1,8 +1,10 @@
 ### USER-DEFINED
 
-# data folders
+# data folders/files
 dataset/
 mount_pandora/
+Immagini Immuno_Fisiologia/
+dataset_v1.0.zip
 
 # env
 singularity/
