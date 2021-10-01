@@ -9,6 +9,12 @@ singularity/
 
 # extras
 external_resources/
+notebooks/
+
+# results and logs
+models/
+trainings/
+wandb/
 
 ### TEMPLATE
 
