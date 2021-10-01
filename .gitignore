@@ -5,6 +5,7 @@ dataset/
 mount_pandora/
 Immagini Immuno_Fisiologia/
 dataset_v1.0.zip
+Immagini Immuno_Fisiologia.zip
 
 # env
 singularity/

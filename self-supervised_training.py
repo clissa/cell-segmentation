@@ -37,17 +37,16 @@ Created on Tue May  7 10:42:13 2019
 """
 import argparse
 # OS related
-import os
 import sys
 from pathlib import Path
 
 # Data manipulation
 import pandas as pd
+
 # Options for pandas
 pd.options.display.max_columns = 50
 pd.options.display.max_rows = 30
 pd.options.display.float_format = '{:,.4f}'.format
-
 
 # add repo root path to pythonpath
 sys.path.insert(0, str(Path.cwd().parent))
@@ -62,24 +61,39 @@ print(
     f"Using versions:\n\nPyTorch: {torch.__version__}\nfastai: {fastai.__version__}")
 
 parser = argparse.ArgumentParser(
-    description='Run self-supervised learning with specified model architecture. Optionally choose whether to start from pretrained model or not.')
+    description='Run self-supervised learning with specified model architecture. Optionally choose whether to start '
+                'from pretrained model or not.')
 parser.add_argument('arch', metavar='model architecture', type=str,
-                    help='Architecture to use for self-supervised training. To be chosen among the ones available in fastai.')
-parser.add_argument('pretrained', metavar='pretrained bool', type=bool,
+                    help='Architecture to use for self-supervised training. To be chosen among the ones available in '
+                         'fastai.')
+parser.add_argument('--pretrained', metavar='pretrained bool', type=bool,
                     help='Whether to start from pretrained weight or train from scratch', default=True)
+parser.add_argument('-bs', '--batch_size', default=32,
+                    help='batch size to use in the dataloader')
+parser.add_argument('-w', '--num_workers', default=8,
+                    help='num_workers to use in the dataloader')
+parser.add_argument('-r1', '--resize1', default=512,
+                    help='first resize shape')
+parser.add_argument('-r2', '--resize2', default=224,
+                    help='second resize shape')
+parser.add_argument('-e', '--epochs', default=6,
+                    help='training epochs')
 
+args = parser.parse_args()
 
 # hyperparams
 
 # augmentation
-resize1 = 512
-resize2 = 224
+resize1 = args.resize1
+resize2 = args.resize2
 max_lighting, p_lighting = 0.1, 0.5
 min_zoom, max_zoom = 0.9, 1.1
 max_warp, max_rotate = 0, 15.0
 
 # dataloader
-bs = 32
+bs = args.batch_size
+n_workers = args.num_workers
+
 
 # utils
 
@@ -97,7 +111,7 @@ class AlbumentationsToGray(Transform):
 
 # read dataset df
 DATA_PATH = REPO_PATH / 'dataset'
-df_path = DATA_PATH/ 'self_supervised_df.csv'
+df_path = DATA_PATH / 'self_supervised_df.csv'
 selfsuper_df = pd.read_csv(df_path)
 
 print(
@@ -116,50 +130,57 @@ tfms = [
 ]
 
 # initialize dataloader
-dls = ImageDataLoaders.from_df(selfsuper_df, DATA_PATH, valid_col='is_valid',  label_col='label',
-                               item_tfms=[RGB2Grey, Resize(resize1)], batch_tfms=tfms,
-                               bs=bs)
+SSL = DataBlock(blocks=(ImageBlock(PILImageBW), CategoryBlock),
+                splitter=ColSplitter(),
+                get_x=lambda o: f'{DATA_PATH}/' + o.fname,
+                get_y=lambda o: o.label,
+                item_tfms=[Resize(resize1)],
+                batch_tfms=tfms,
+                )
+
+dls = SSL.dataloaders(selfsuper_df, bs=bs, num_workers=n_workers)
+
+# # initialize dataloader
+# dls = ImageDataLoaders.from_df(selfsuper_df, DATA_PATH, valid_col='is_valid',  label_col='label',
+#                                item_tfms=[RGB2Grey, Resize(resize1)], batch_tfms=tfms,
+#                                bs=bs)
 
 # initialize learner
 
-class args:
-    arch = 'resnet18'
-    pretrained = False
-
 # hyperparams
-epochs = 1
+epochs = args.epochs
 
 loss = CrossEntropyLossFlat()
 metrics = [error_rate, accuracy]
 early_stopping_patience = 10
-# args = parser.parse_args()
 arch = getattr(fastai.vision.models, args.arch)
-# , raise(ValueError("Specified architecture not available. Please check spelling is in accordance to `fastai.vision.models` names."))
+# , raise(ValueError("Specified architecture not available. Please check spelling is in accordance to
+# `fastai.vision.models` names."))
 n_in = 3 if args.pretrained else 1
-
 
 learn = cnn_learner(dls, arch,
                     loss_func=loss,
                     metrics=metrics,
-                    cbs=EarlyStoppingCallback(
-                        monitor='accuracy', patience=early_stopping_patience),
+                    cbs=[EarlyStoppingCallback(monitor='accuracy', patience=early_stopping_patience),
+                         CSVLogger(fname=f'history_{args.arch}')],
                     pretrained=args.pretrained,
                     n_in=n_in,
                     path=REPO_PATH
                     )
 
 # find optimal learning rate and train
-lr = learn.lr_find()
+lr = learn.lr_find(show_plot=False)
 print('Learning rate:', lr)
 
 import time
+
 start_time = time.time()
-learn.fit_one_cycle(epochs, lr.valley.item()*10)
+learn.fit_one_cycle(epochs, lr.valley * 10)
 end_time = time.time()
-avg_time_min = (end_time - start_time)/60/epochs
+avg_time_min = (end_time - start_time) / 60 / epochs
 
 for ep in range(len(learn.recorder.values)):
-    learn.recorder.values[ep].insert(0, ep+1)
+    learn.recorder.values[ep].insert(0, ep + 1)
     learn.recorder.values[ep].append(f"{avg_time_min:.2}mins")
 train_stats = pd.DataFrame(learn.recorder.values, columns=learn.recorder.metric_names)
 STATS_PATH = learn.path / learn.model_dir / 'train_stats'
