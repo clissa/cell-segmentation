@@ -36,14 +36,23 @@ parser.add_argument('-art_name', '--artifact_name', type=str, default='',
                     help="Name of the W&B artifact. The default will create a name as f'fuocells-{dataset}',"
                          "; f'{artifact_name}-{dataset}' otherwise")
 parser.add_argument('--alias', type=str, default='latest', help="Alias for the W&B artifact. Default: 'latest'")
+parser.add_argument('--crops', type=str, default='',
+                    help="Name of the crops folder if the target dataset contains crops. Default: '', i.e., "
+                         "full size images")
 args = parser.parse_args()
 # retrieve data from local source
 IMG_PATH = globals()[f"IMG_PATH_{args.dataset[0]}"]
-ds_dict = {
-    'unlabelled': IMG_PATH.parent.parent / 'unlabelled',
-    'images': IMG_PATH,
-    'masks': IMG_PATH.parent.parent / 'v1.0' / 'masks'
-}
+if args.crops:
+    ds_dict = {
+        'images': IMG_PATH.parent.parent / args.crops / 'images',
+        'masks': IMG_PATH.parent.parent / args.crops / 'masks'
+    }
+else:
+    ds_dict = {
+        'unlabelled': IMG_PATH.parent.parent / 'unlabelled',
+        'images': IMG_PATH,
+        'masks': IMG_PATH.parent.parent / 'v1.0' / 'masks'
+    }
 
 
 def main():
@@ -56,6 +65,8 @@ def main():
         # loop through folders
         for folder_name, folder_path in ds_dict.items():
             ds.add_dir(folder_path, name=folder_name)
+        if args.crops:
+            ds.add_file(folder_path.parent / 'crops_map.csv')
 
         # save artifact to W&B
         run.log_artifact(ds, aliases=args.alias)
