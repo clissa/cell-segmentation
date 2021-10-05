@@ -111,14 +111,16 @@ if __name__ == '__main__':
         raise ValueError("Invalid argument `dataset`. Supported values are `red` and `yellow`.")
 
     crops_df = crop_images(IMG_PATH, MASKS_PATH, args.crop_size)
-    crops_df.to_csv(IMG_PATH.parent / 'crops_map.csv')
+    crops_df.to_csv(IMG_PATH.parent.parent / f'crops_{args.crop_size} / '
+    crops_map.csv
+    ')
 
     targets = [p for p in MASKS_PATH.iterdir()]
     masks_with_cells = 0
     for p in MASKS_PATH.iterdir():
         m = skimage.io.imread(p)
-        if len(np.unique(m)) > 1:
-            masks_with_cells += 1
+    if len(np.unique(m)) > 1:
+        masks_with_cells += 1
 
     print(
         f'Masks containing cells: {masks_with_cells} out of {len(targets)} ('
