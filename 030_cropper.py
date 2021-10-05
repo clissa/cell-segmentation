@@ -12,14 +12,6 @@
 #  #limitations under the License.
 #
 #  """
-#  Created on 5/18/21, 10:33 AM
-#  @author: Luca Clissa
-#
-#
-#  Run using fastai/image_processing environment
-#  """
-#
-#  """
 #  Created on 5/17/21, 4:49 PM
 #  @author: Luca Clissa
 #
@@ -39,7 +31,8 @@ from fluocells.config import DATA_PATH_r, DATA_PATH_y
 parser = argparse.ArgumentParser(description='Crop original images in square patches of customisable size.')
 parser.add_argument('dataset', metavar='marker color', type=str,
                     help='Marker color (either red or yellow)')
-parser.add_argument('version', metavar='dataset version name', type=str, help='Version tag')
+parser.add_argument('--v_imgs', metavar='images version name', type=str, help='Version tag', default='original')
+parser.add_argument('--v_masks', metavar='masks version name', type=str, help='Version tag', default='v1.0')
 parser.add_argument('--crop_size', metavar='Crop size', type=int, help='Size of the crop', default=512)
 
 args = parser.parse_args()
@@ -80,9 +73,9 @@ def cropper(img, crop_size=512):
 def crop_images(img_path, mask_path, crop_size=512):
     from tqdm import tqdm
     # setup output folder
-    crops_path = img_path.parent / f'crops_{crop_size}/images'
+    crops_path = img_path.parent.parent / f'crops_{crop_size}/images'
     crops_path.mkdir(parents=True, exist_ok=True)
-    crops_mask_path = mask_path.parent / f'crops_{crop_size}/masks'
+    crops_mask_path = mask_path.parent.parent / f'crops_{crop_size}/masks'
     crops_mask_path.mkdir(parents=True, exist_ok=True)
 
     image_names = [p.name for p in img_path.iterdir()]
@@ -109,11 +102,11 @@ def crop_images(img_path, mask_path, crop_size=512):
 
 if __name__ == '__main__':
     if args.dataset == 'red':
-        IMG_PATH = DATA_PATH_r / f'{args.version}/images'
-        MASKS_PATH = DATA_PATH_r / f'{args.version}/masks'
+        IMG_PATH = DATA_PATH_r / f'{args.v_imgs}/images'
+        MASKS_PATH = DATA_PATH_r / f'{args.v_masks}/masks'
     elif args.dataset == 'yellow':
-        IMG_PATH = DATA_PATH_y / f'{args.version}/images'
-        MASKS_PATH = DATA_PATH_y / f'{args.version}/masks'
+        IMG_PATH = DATA_PATH_y / f'{args.v_imgs}/images'
+        MASKS_PATH = DATA_PATH_y / f'{args.v_masks}/masks'
     else:
         raise ValueError("Invalid argument `dataset`. Supported values are `red` and `yellow`.")
 
