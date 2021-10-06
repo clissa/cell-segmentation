@@ -60,6 +60,8 @@ def main():
     with wandb.init(project=args.proj_name, job_type="upload") as run:
         # create an artifact for all the raw data
         PREFIX = f"{args.artifact_name}-{args.dataset}" if args.artifact_name else f"fluocells-{args.dataset}"
+        if args.crops:
+            PREFIX = f"{PREFIX}-{args.crops}"
         ds = wandb.Artifact(PREFIX, type="raw_data")
 
         # loop through folders
