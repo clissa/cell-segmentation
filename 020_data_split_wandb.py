@@ -35,6 +35,7 @@ parser.add_argument('-ds', '--dataset', type=str, default='red',
 parser.add_argument('-art_name', '--artifact_name', type=str, default='',
                     help="Name of the W&B artifact. The default will create a name as f'fuocells-{dataset}',"
                          "; f'{artifact_name}-{dataset}' otherwise")
+parser.add_argument('--crops', type=str, default='', help="Crops dataset folder. Default '', i.e., no crops")
 parser.add_argument('--seed', type=int, default=2, help="Random seed for data split")
 args = parser.parse_args()
 
@@ -55,7 +56,8 @@ def _add_file(artifact, path):
 
 
 PREFIX = f"{args.artifact_name}-{args.dataset}" if args.artifact_name else f"fluocells-{args.dataset}"
-
+if args.crops:
+    PREFIX = f"{PREFIX}-{args.crops}"
 
 def main():
     with wandb.init(project=args.proj_name, job_type="data_split") as run:
@@ -69,10 +71,10 @@ def main():
 
         # create balanced train/val/test splits with proportions ~ 70/20/10 %
         # each count is the number of images per label
-        if args.dataset == 'red':
-            DATA_SPLITS = {"train": 60, "val": 16, "test": 8}
-        else:
-            DATA_SPLITS = {"train": 200, "val": 55, "test": 28}
+        n_crops = 12 if args.crops else 1
+        n_imgs_split = [60, 16, 8] if args.dataset == 'red' else [200, 55, 28]
+        n_imgs_split = [x * n_crops for x in n_imgs_split]
+        DATA_SPLITS = {"train": n_imgs_split[0], "val": n_imgs_split[1], "test": n_imgs_split[2]}
         random.seed(args.seed)
         artifacts = {}
         # wrap artifacts in dictionary for convenience
