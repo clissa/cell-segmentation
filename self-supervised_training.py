@@ -18,23 +18,6 @@
 #
 #  Run using fastai/image_processing environment
 #  """
-
-# !/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# http://www.apache.org/licenses/LICENSE-2.0
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""
-Created on Tue May  7 10:42:13 2019
-@author: Luca Clissa
-"""
 import argparse
 # OS related
 import sys
@@ -109,6 +92,8 @@ class AlbumentationsToGray(Transform):
         return aug_img
 
 
+RGB2Grey = AlbumentationsToGray(ToGray(p=1))
+
 # read dataset df
 DATA_PATH = REPO_PATH / 'dataset'
 df_path = DATA_PATH / 'self_supervised_df.csv'
@@ -119,7 +104,6 @@ print(
 print(selfsuper_df.head())
 
 # setup augmentation pipeline
-RGB2Grey = AlbumentationsToGray(ToGray(p=1))
 
 tfms = [
     *aug_transforms(
@@ -153,9 +137,14 @@ epochs = args.epochs
 loss = CrossEntropyLossFlat()
 metrics = [error_rate, accuracy]
 early_stopping_patience = 10
-arch = getattr(fastai.vision.models, args.arch)
-# , raise(ValueError("Specified architecture not available. Please check spelling is in accordance to
-# `fastai.vision.models` names."))
+args = parser.parse_args()
+try:
+    arch = getattr(fastai.vision.models, args.arch)
+except:
+    raise (ValueError(
+        f"Specified architecture {args.arch} not available. Please check spelling is in accordance to "
+        f"`fastai.vision.models` names."))
+
 n_in = 3 if args.pretrained else 1
 
 learn = cnn_learner(dls, arch,
@@ -172,22 +161,22 @@ learn = cnn_learner(dls, arch,
 lr = learn.lr_find(show_plot=False)
 print('Learning rate:', lr)
 
-import time
-
-start_time = time.time()
-learn.fit_one_cycle(epochs, lr.valley * 10)
-end_time = time.time()
-avg_time_min = (end_time - start_time) / 60 / epochs
-
-for ep in range(len(learn.recorder.values)):
-    learn.recorder.values[ep].insert(0, ep + 1)
-    learn.recorder.values[ep].append(f"{avg_time_min:.2}mins")
-train_stats = pd.DataFrame(learn.recorder.values, columns=learn.recorder.metric_names)
-STATS_PATH = learn.path / learn.model_dir / 'train_stats'
-STATS_PATH.mkdir(exist_ok=True)
+# import time
+#
+# start_time = time.time()
+# learn.fit_one_cycle(epochs, lr.valley * 10)
+# end_time = time.time()
+# avg_time_min = (end_time - start_time) / 60 / epochs
+#
+# for ep in range(len(learn.recorder.values)):
+#     learn.recorder.values[ep].insert(0, ep + 1)
+#     learn.recorder.values[ep].append(f"{avg_time_min:.2}mins")
+# train_stats = pd.DataFrame(learn.recorder.values, columns=learn.recorder.metric_names)
+# STATS_PATH = learn.path / learn.model_dir / 'train_stats'
+# STATS_PATH.mkdir(exist_ok=True)
 
 model_outname = f"{args.arch}_{'pretrain' if args.pretrained else 'no-pretrain'}_membership"
-train_stats.to_csv(STATS_PATH / (model_outname + '.csv'))
+# train_stats.to_csv(STATS_PATH / (model_outname + '.csv'))
 save_path = learn.save(model_outname)
 
 print('Model saved at:\n\n', save_path)
