@@ -35,13 +35,9 @@
 #  """
 
 from pathlib import Path
+import fluocells as fluo
 
-HOME = Path.home()
-if HOME.name == 'luca':
-    workdir = 'PycharmProjects'
-else:
-    workdir = 'workspace'
-REPO_PATH = HOME / workdir / 'cells'
+REPO_PATH = Path(fluo.__path__[0]).parent
 DATA_PATH_r = REPO_PATH / 'dataset/red'
 DATA_PATH_y = REPO_PATH / 'dataset/yellow'
 DATA_PATH_g = REPO_PATH / 'dataset/green'
