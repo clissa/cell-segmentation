@@ -79,7 +79,7 @@ def main():
         artifacts = {}
         # wrap artifacts in dictionary for convenience
         for split, count in DATA_SPLITS.items():
-            artifacts[split] = wandb.Artifact("_".join([PREFIX, split, "data", str(count)]),
+            artifacts[split] = wandb.Artifact("_".join([PREFIX, split, "data"]),
                                               "_".join([split, "data"]))
 
             # get split
