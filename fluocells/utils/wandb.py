@@ -52,20 +52,9 @@ def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], cfg=None):
     def label_func(p):
         return Path(str(p).replace('images', 'masks'))
 
-    if isinstance(config, dict):
-        config = namedtuple("WBConfig", configg.keys())(*config.values())
-    # pre_tfms = [
-    #     #     IntToFloatTensor(div_mask=255),
-    #     Resize(cfg.resize1)
-    # ]
-    # tfms = [
-    #     IntToFloatTensor(div_mask=255),  # need masks in [0, 1] format
-    #     *aug_transforms(
-    #         size=cfg.resize2,
-    #         max_lighting=0.1, p_lighting=0.5,
-    #         min_zoom=0.9, max_zoom=1.1,
-    #         max_warp=0, max_rotate=15.0)
-    # ]
+    if isinstance(cfg, dict):
+        cfg = namedtuple("WBConfig", cfg.keys())(*cfg.values())
+
     splitter = GrandparentSplitter(train_name='train', valid_name='valid')
 
     dls = SegmentationDataLoaders.from_label_func(
@@ -126,10 +115,10 @@ def _make_learner(dls, cfg=None):
     print('inside learner', cfg)
     model = globals()[cfg.encoder]
     optimizer = globals()[cfg.optimizer]
-    loss_func = globals()[cfg.loss_func]
+    loss_func = globals()[cfg.loss_func]()
 
     learn = unet_learner(dls, arch=model,
-                         loss_func=loss_func(),
+                         loss_func=loss_func,
                          opt_func=optimizer,
                          # accuracy],
                          metrics=[Dice(), JaccardCoeff(), foreground_acc],
