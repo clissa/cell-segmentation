@@ -20,6 +20,7 @@ __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_mak
 from pathlib import Path
 from fastai.vision.all import *
 from fluocells.config import REPO_PATH
+from fluocells.losses import *
 
 
 def _get_train_val_names(pTr, pVal):
