@@ -1,0 +1,14 @@
+# install miniconda
+./setup_miniconda.sh
+
+# create fluocells environment
+mamba create --name fluocells
+
+# install pytorch
+mamba install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch-lts -c nvidia
+
+# install fastai
+mamba install -c fastchan fastai
+
+# install wandb
+mamba install -c conda-forge wandb
