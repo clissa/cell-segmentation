@@ -15,7 +15,7 @@
 Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
-# __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args']
+__all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args']
 
 from pathlib import Path
 from fastai.vision.all import *
@@ -107,10 +107,15 @@ def _make_learner(dls, cfg=None):
     return learn
 
 
+def _get_fitter_name(method_str):
+    return method_str.split('.')[1].split(' ')[0]
+
+
 def _train_learner_with_args(learn, one_cycle=False, multi_gpu=False, **kwargs):
     """Wrapper for training configurations depending on one cycle policy and gpus. Training params are passed as kwargs."""
 
     fit_func = getattr(learn, "fit") if one_cycle else getattr(learn, "fit_one_cycle")
+    print(f"\nPerforming fit using {_get_fitter_name(fit_func.__str__())} and {'multi' if multi_gpu else 'single'} gpu")
     if multi_gpu:
         with learn.distrib_ctx():
             fit_func(**kwargs)
