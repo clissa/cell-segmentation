@@ -15,7 +15,7 @@
 Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
-__all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner']
+# __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args']
 
 from pathlib import Path
 from fastai.vision.all import *
@@ -67,48 +67,6 @@ def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], cfg=None):
     return dls
 
 
-# def _make_dataloader(run, cfg=None, prefix="fluocells-red", alias='latest'):
-#     """Download dataset artifact and setup dataloaders according to configuration parameters. Return dls: DataLoaders"""
-#
-#     # download artifact and set paths
-#     train_artifact_ref = f"{prefix}_train_data:{alias}"  # fluocells-red_train_data_60:v0
-#     val_artifact_ref = f"{prefix}_val_data:{alias}"  # fluocells-red_val_data_16:v0
-#     # find the most recent ("latest") version of the full raw data
-#     train_ds = run.use_artifact(train_artifact_ref)
-#     val_ds = run.use_artifact(val_artifact_ref)
-#     # download locally (if not present)
-#     train_path = train_ds.download(root=REPO_PATH / 'dataset' / f"{train_artifact_ref.split('_')[0]}-split" / 'train')
-#     val_path = val_ds.download(root=REPO_PATH / 'dataset' / f"{val_artifact_ref.split('_')[0]}-split" / 'valid')
-#
-#     # cfg = namedtuple("config", hyperparameter_defaults.keys())(*hyperparameter_defaults.values())
-#     def label_func(p):
-#         return Path(str(p).replace('images', 'masks'))
-#
-#     pre_tfms = [
-#         #     IntToFloatTensor(div_mask=255),
-#         Resize(cfg.resize1)
-#     ]
-#     tfms = [
-#         IntToFloatTensor(div_mask=255),  # need masks in [0, 1] format
-#         *aug_transforms(
-#             size=cfg.resize2,
-#             max_lighting=0.1, p_lighting=0.5,
-#             min_zoom=0.9, max_zoom=1.1,
-#             max_warp=0, max_rotate=15.0)
-#     ]
-#     splitter = GrandparentSplitter(train_name='train', valid_name='valid')
-#     # train_fnames = get_image_files(train_path / 'images')
-#     # val_fnames = get_image_files(val_path / 'images')
-#
-#     dls = SegmentationDataLoaders.from_label_func(
-#         train_path.parent, bs=cfg.batch_size, fnames=_get_train_val_names(train_path, val_path), label_func=label_func,
-#         splitter=splitter,  # RandomSplitter(0.2, 42),
-#         item_tfms=pre_tfms, batch_tfms=tfms,
-#         num_workers=cfg.dls_workers,
-#     )
-#     return dls
-
-
 def _make_learner(dls, cfg=None):
     """Use the input dataloaders and configuration to setup a unet_learner with desired parameters. Return learn:
     Learner and updates cfg.learning_rate if None"""
@@ -146,4 +104,16 @@ def _make_learner(dls, cfg=None):
     # else:
     #     print(f"Learning rate: {cfg.learning_rate}")
     print(f"Using LR={cfg.learning_rate:.6}")
+    return learn
+
+
+def _train_learner_with_args(learn, one_cycle=False, multi_gpu=False, **kwargs):
+    """Wrapper for training configurations depending on one cycle policy and gpus. Training params are passed as kwargs."""
+
+    fit_func = getattr(learn, "fit") if one_cycle else getattr(learn, "fit_one_cycle")
+    if multi_gpu:
+        with learn.distrib_ctx():
+            fit_func(**kwargs)
+    else:
+        fit_func(**kwargs)
     return learn
