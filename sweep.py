@@ -49,7 +49,8 @@ print('Dataset name:', DATASET)
 def train(config=None, dataset=DATASET, alias=args.alias):
     with wandb.init(config=config, job_type='sweep_train') as run:
         config = wandb.config
-        train_path, val_path = _get_wb_datasets(run, prefix='fluocells-red', alias='latest')
+        train_path, val_path = rank0_first(_get_wb_datasets, run=run, prefix='fluocells-red', alias='latest')
+        # old version _get_wb_datasets(run, prefix='fluocells-red', alias='latest')
         pre_tfms = [
             #     IntToFloatTensor(div_mask=255),
             Resize(config.resize1)
