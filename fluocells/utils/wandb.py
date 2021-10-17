@@ -16,7 +16,7 @@ Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
-           '_resize', '_zoom']
+           '_resize', '_zoom', '_warp']
 
 import random
 from pathlib import Path
@@ -143,7 +143,7 @@ def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Bord
     for args in product(sizes, methods, pad_mode):
         s, m, p = args
         tfmd = Resize(size=s, method=m, pad_mode=p)(img)
-        tfms_dict[f"(Size={s}, Method={m}, Padding={p})"] = tfmd
+        tfms_dict[f"Size={s}, Method={m}, Padding={p}"] = tfmd
     return tfms_dict
 
 
@@ -155,5 +155,19 @@ def _zoom(img, scales=[0.5, 0.7, 0.9, 1.1, 1.3, 1.5], mode=['bilinear', 'bicubic
         b = _batch_ex(len(scales), img)
         tfms = z(b)
         for s, t in zip(scales, tfms):
-            tfms_dict[f"(Scale={s}, Mode={m}, Padding={p})"] = t
+            tfms_dict[f"Scale={s}, Mode={m}, Padding={p}"] = t
+    return tfms_dict
+
+
+def _warp(img, scales=[-0.4, -0.2, 0., 0.2, 0.4], wtype=['horizontal', 'vertical']):
+    tfms_dict = {}
+    v_warp = Warp(p=1., draw_y=scales, draw_x=0., size=512)
+    h_warp = Warp(p=1., draw_x=scales, draw_y=0., size=512)
+    b = _batch_ex(len(scales), img)
+    tfms = v_warp(b)
+    for s, t in zip(scales, tfms):
+        tfms_dict[f"Scale={s}, Type=vertical"] = t
+    tfms = h_warp(b)
+    for s, t in zip(scales, tfms):
+        tfms_dict[f"Scale={s}, Type=horizontal"] = t
     return tfms_dict
