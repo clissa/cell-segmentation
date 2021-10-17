@@ -89,7 +89,7 @@ def augmentation(config=None, dataset=DATASET, alias=args.alias):
         config = wandb.config
         # train_path, val_path = (Path('/home/luca/PycharmProjects/cell-segmentation/dataset/fluocells-red-split/train'),
         #                         Path('/home/luca/PycharmProjects/cell-segmentation/dataset/fluocells-red-split/valid'))
-        train_path, val_path = _get_wb_datasets(run, prefix='fluocells-red', alias='latest')
+        train_path, val_path = rank0_first(_get_wb_datasets, run=run, prefix='fluocells-red', alias='latest')
         fnames = _get_train_val_names(train_path, val_path)
         seed = config.seed
         n_samples = config.n_samples
