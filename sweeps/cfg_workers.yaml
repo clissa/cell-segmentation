@@ -1,9 +1,6 @@
 program: sweep.py
 name: sweep_resources
 method: random
-#metric:
-#  name: Runtime
-#  goal: minimize
 parameters:
   dls_workers:
     values: [ 0, 12, 24 ]
@@ -24,7 +21,7 @@ parameters:
   pretrained:
     value: False
   resize1:
-    values: [ 640, 512 ]
+    values: [ 768, 512 ]
   resize2:
     values: [ 512, 256 ]
   to_log:
