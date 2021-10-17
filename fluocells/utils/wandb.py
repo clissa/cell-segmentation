@@ -15,9 +15,12 @@
 Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
-__all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args']
+__all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
+           '_resize']
 
 from pathlib import Path
+from itertools import product
+
 from fastai.vision.all import *
 from fluocells.config import REPO_PATH
 from fluocells.losses import *
@@ -129,5 +132,5 @@ def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Bord
     for args in product(sizes, methods, pad_mode):
         s, m, p = args
         tfmd = Resize(size=s, method=m, pad_mode=p)(img)
-        tfms_dict[(s, m, p)] = tfmd  # wandb.Image(tfmd, caption=f"(Size={s}, Method={m}, Padding={p})")
+        tfms_dict[f"(Size={s}, Method={m}, Padding={p})"] = tfmd
     return tfms_dict

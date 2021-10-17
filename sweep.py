@@ -107,9 +107,9 @@ def augmentation(config=None, dataset=DATASET, alias=args.alias):
             # log one section per each image composed by original image + augmented versions
             wandb.log({config.tfm.title(): [
                                                wandb.Image(img, caption=img_path.name, grouping=img_path.name)] + [
-                                               wandb.Image(tfmd,
-                                                           caption=f"(Size={k[0]}, Method={k[1]}, Padding={k[2]})",
-                                                           grouping=img_path.name) for k, tfmd in tfms.items()]
+                wandb.Image(tfmd,
+                            caption=cpt,
+                            grouping=img_path.name) for cpt, tfmd in tfms.items()]
                        }
                       )
 
