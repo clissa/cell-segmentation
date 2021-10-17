@@ -16,7 +16,7 @@ Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
-           '_resize', '_zoom', '_rotate', '_warp']
+           '_resize', '_zoom', '_rotate', '_warp', '_brightness']
 
 import random
 from pathlib import Path
@@ -182,4 +182,14 @@ def _warp(img, scales=[-0.4, -0.2, 0., 0.2, 0.4], wtype=['horizontal', 'vertical
     tfms = h_warp(b)
     for s, t in zip(scales, tfms):
         tfms_dict[f"Scale={s}, Type=horizontal"] = t
+    return tfms_dict
+
+
+def _brightness(img, scales=[0.3, 0.4, 0.5, 0.7, 0.8]):
+    tfms_dict = {}
+    z = Brightness(p=1., draw=scales)
+    b = _batch_ex(len(scales), img)
+    tfms = z(b)
+    for s, t in zip(scales, tfms):
+        tfms_dict[f"Magnitude={s}"] = t
     return tfms_dict
