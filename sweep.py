@@ -82,6 +82,38 @@ def train(config=None, dataset=DATASET, alias=args.alias):
         return learn
 
 
+def augmentation(config=None, dataset=DATASET, alias=args.alias):
+    with wandb.init(project='fluocells', entity='lclissa', config=config, job_type='sweep_augmentation') as run:
+        import random
+
+        config = wandb.config
+        # train_path, val_path = (Path('/home/luca/PycharmProjects/cell-segmentation/dataset/fluocells-red-split/train'),
+        #                         Path('/home/luca/PycharmProjects/cell-segmentation/dataset/fluocells-red-split/valid'))
+        train_path, val_path = _get_wb_datasets(run, prefix='fluocells-red', alias='latest')
+        fnames = _get_train_val_names(train_path, val_path)
+        seed = config.seed
+        n_samples = config.n_samples
+        random.seed(seed)
+        sample_paths = random.sample(fnames, n_samples)
+
+        # TODO:
+        # - implement configurable augmentation pipeline
+        # - setup W&B logging
+        aug_dict = {}  # dict(original={},transforms={},)
+        tfm = globals()[f"_{config.tfm}"]
+        for img_path in sample_paths:
+            img = PILImage.create(img_path)
+            tfms = tfm(img)
+            # log one section per each image composed by original image + augmented versions
+            wandb.log({config.tfm.title(): [
+                                               wandb.Image(img, caption=img_path.name, grouping=img_path.name)] + [
+                                               wandb.Image(tfmd,
+                                                           caption=f"(Size={k[0]}, Method={k[1]}, Padding={k[2]})",
+                                                           grouping=img_path.name) for k, tfmd in tfms.items()]
+                       }
+                      )
+
+
 # sweep helper
 def _fit_sweep(proj_name, sweep_config, func, entity='lclissa', count=10):
     sweep_id = wandb.sweep(sweep_config, project=proj_name)

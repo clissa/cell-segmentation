@@ -122,3 +122,12 @@ def _train_learner_with_args(learn, one_cycle=False, multi_gpu=False, **kwargs):
     else:
         fit_func(**kwargs)
     return learn
+
+
+def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Border', 'Reflection']):
+    tfms_dict = {}
+    for args in product(sizes, methods, pad_mode):
+        s, m, p = args
+        tfmd = Resize(size=s, method=m, pad_mode=p)(img)
+        tfms_dict[(s, m, p)] = tfmd  # wandb.Image(tfmd, caption=f"(Size={s}, Method={m}, Padding={p})")
+    return tfms_dict

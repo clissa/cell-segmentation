@@ -1,0 +1,10 @@
+program: sweep.py
+name: sweep_augmentation
+method: grid
+parameters:
+  tfm:
+    values: [ 'resize' ]
+  seed:
+    value: [ 4 ]
+  n_samples:
+    value: [ 2 ]
