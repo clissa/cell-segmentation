@@ -3,7 +3,7 @@ name: sweep_augmentation
 method: grid
 parameters:
   tfm:
-    values: [ 'resize', 'zoom' ]
+    values: [ 'random_resized_crop', 'resize', 'zoom', 'warp', 'rotate', 'brightness', 'contrast', 'saturation', 'hue' ]
   seed:
     value: 4
   n_samples:

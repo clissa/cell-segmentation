@@ -16,7 +16,8 @@ Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
-           '_resize', '_zoom', '_rotate', '_warp', '_brightness', '_contrast', '_saturation', '_hue']
+           '_resize', '_random_resized_crop', '_zoom', '_rotate', '_warp', '_brightness', '_contrast', '_saturation',
+           '_hue']
 
 import random
 from pathlib import Path
@@ -144,6 +145,14 @@ def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Bord
         s, m, p = args
         tfmd = Resize(size=s, method=m, pad_mode=p)(img)
         tfms_dict[f"Size={s}, Method={m}, Padding={p}"] = tfmd
+    return tfms_dict
+
+
+def _random_resized_crop(img, sizes=[512]):
+    tfms_dict = {}
+    for s in sizes:
+        tfmd = RandomResizedCrop(size=s, min_scale=0.6, max_scale=1.2, ratio=(0.7, 1.3))(img)
+        tfms_dict[f"Size={s}"] = tfmd
     return tfms_dict
 
 
