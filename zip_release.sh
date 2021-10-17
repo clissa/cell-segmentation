@@ -14,20 +14,9 @@
 # limitations under the License.
 #
 
-CTRL=${3:-pass}
-DEFAULT="preproc"
+for DS_NAME in $2 ${3:-} ${4:-}
+do
+	zip dataset_$1.zip dataset/$DS_NAME/$1/masks/* dataset/$DS_NAME/unlabelled/* dataset/$DS_NAME/original/images/* dataset/$DS_NAME/$1/stats_df.csv dataset/$DS_NAME/labels.csv dataset/$DS_NAME/$1/README.md
+done
 
-if [[ "$CTRL" == "$DEFAULT" ]];
-then
-  # generate annotation dfp
-  echo "Generating annotations in multiple formats"
-  python get_annotations_df.py $1 $2
 
-  # compute objects stats
-  echo "Computing objects stats"
-  python get_stats_df.py $1 $2
-fi
-
-# zip dataset
-cd dataset
-zip $1_$2.zip $1/$2/masks/* $1/unlabelled/* $1/original/images/* $1/$2/stats_df.csv $1/labels.csv $1/$2/README.md

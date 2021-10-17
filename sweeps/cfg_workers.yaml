@@ -1,0 +1,35 @@
+program: sweep.py
+name: sweep_resources
+method: random
+parameters:
+  dls_workers:
+    values: [ 0, 12, 24 ]
+  batch_size:
+    values: [ 16, 32 ]
+  epochs:
+    value: 2
+  learning_rate:
+    value: 0.001
+  encoder:
+    value: "resnet18"
+  loss_func:
+    value: 'DiceLoss'
+  one_cycle:
+    value: False
+  optimizer:
+    value: 'Adam'
+  pretrained:
+    value: False
+  resize1:
+    values: [ 768, 512 ]
+  resize2:
+    values: [ 512, 256 ]
+  to_log:
+    value: 'all'
+  log_model:
+    value: False
+  multi_gpu:
+    values: [ True, False ]
+
+
+

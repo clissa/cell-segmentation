@@ -1,14 +1,31 @@
 ### USER-DEFINED
 
-# data folders
+# data folders/files
 dataset/
 mount_pandora/
+Immagini Immuno_Fisiologia/
+dataset_v1.0.zip
+Immagini Immuno_Fisiologia.zip
 
 # env
 singularity/
 
 # extras
 external_resources/
+notebooks/
+
+# results and logs
+models/
+trainings/
+wandb/
+
+# PyCharm
+.idea/
+
+# unwanted
+fastai2.4.yml
+SSL_train_all.sh
+fluocells/augmentation.py
 
 ### TEMPLATE
 

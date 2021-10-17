@@ -18,30 +18,11 @@
 #
 #  Run using fastai/image_processing environment
 #  """
-#
-#  """
-#  Created on 5/18/21, 10:33 AM
-#  @author: Luca Clissa
-#
-#
-#  Run using fastai/image_processing environment
-#  """
-#
-#  """
-#  Created on 5/18/21, 10:31 AM
-#  @author: Luca Clissa
-#
-#
-#  """
 
 from pathlib import Path
+import fluocells as fluo
 
-HOME = Path.home()
-if HOME.name == 'luca':
-    workdir = 'PycharmProjects'
-else:
-    workdir = 'workspace'
-REPO_PATH = HOME / workdir / 'cells'
+REPO_PATH = Path(fluo.__path__[0]).parent
 DATA_PATH_r = REPO_PATH / 'dataset/red'
 DATA_PATH_y = REPO_PATH / 'dataset/yellow'
 DATA_PATH_g = REPO_PATH / 'dataset/green'
