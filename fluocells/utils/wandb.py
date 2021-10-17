@@ -16,7 +16,7 @@ Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
-           '_resize', '_zoom', '_warp']
+           '_resize', '_zoom', '_rotate', '_warp']
 
 import random
 from pathlib import Path
@@ -156,6 +156,18 @@ def _zoom(img, scales=[0.5, 0.7, 0.9, 1.1, 1.3, 1.5], mode=['bilinear', 'bicubic
         tfms = z(b)
         for s, t in zip(scales, tfms):
             tfms_dict[f"Scale={s}, Mode={m}, Padding={p}"] = t
+    return tfms_dict
+
+
+def _rotate(img, angles=[-25, -10, 0, 10, 25], mode=['bilinear', 'bicubic'], pad_mode=['border', 'reflection']):
+    tfms_dict = {}
+    for args in product(mode, pad_mode):
+        m, p = args
+        z = Rotate(p=1., draw=angles, mode=m, pad_mode=p, size=512)
+        b = _batch_ex(len(angles), img)
+        tfms = z(b)
+        for s, t in zip(angles, tfms):
+            tfms_dict[f"Angle={s}, Mode={m}, Padding={p}"] = t
     return tfms_dict
 
 
