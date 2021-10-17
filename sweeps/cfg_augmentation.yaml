@@ -3,7 +3,7 @@ name: sweep_augmentation
 method: grid
 parameters:
   tfm:
-    values: [ 'resize' ]
+    values: [ 'resize', 'zoom' ]
   seed:
     value: 4
   n_samples:

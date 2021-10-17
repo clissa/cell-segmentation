@@ -16,8 +16,9 @@ Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
-           '_resize']
+           '_resize', '_zoom']
 
+import random
 from pathlib import Path
 from itertools import product
 
@@ -127,10 +128,32 @@ def _train_learner_with_args(learn, one_cycle=False, multi_gpu=False, **kwargs):
     return learn
 
 
+def _batch_ex(bs, pilimg):
+    timg = TensorImage(array(pilimg)).permute(2, 0, 1).float() / 255.
+    return TensorImage(timg[None].expand(bs, *timg.shape).clone())
+
+
+def _random_coord(min_c=0.3, max_c=0.7):
+    """Pick a random coordinate for the center of augmentation transforms"""
+    return random.uniform(min_c, max_c)
+
+
 def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Border', 'Reflection']):
     tfms_dict = {}
     for args in product(sizes, methods, pad_mode):
         s, m, p = args
         tfmd = Resize(size=s, method=m, pad_mode=p)(img)
         tfms_dict[f"(Size={s}, Method={m}, Padding={p})"] = tfmd
+    return tfms_dict
+
+
+def _zoom(img, scales=[0.5, 0.7, 0.9, 1.1, 1.3, 1.5], mode=['bilinear', 'bicubic'], pad_mode=['border', 'reflection']):
+    tfms_dict = {}
+    for args in product(mode, pad_mode):
+        m, p = args
+        z = Zoom(p=1., draw=scales, draw_x=_random_coord(), draw_y=_random_coord(), mode=m, pad_mode=p, size=512)
+        b = _batch_ex(len(scales), img)
+        tfms = z(b)
+        for s, t in zip(scales, tfms):
+            tfms_dict[f"(Scale={s}, Mode={m}, Padding={p})"] = t
     return tfms_dict
