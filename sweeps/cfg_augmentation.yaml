@@ -5,6 +5,6 @@ parameters:
   tfm:
     values: [ 'resize' ]
   seed:
-    value: [ 4 ]
+    value: 4
   n_samples:
-    value: [ 2 ]
+    value: 2
