@@ -47,7 +47,7 @@ print('Dataset name:', DATASET)
 
 # sweep functions
 def train(config=None, dataset=DATASET, alias=args.alias):
-    with wandb.init(config=config, job_type='sweep_train') as run:
+    with wandb.init(config=config, job_type='sweep_augmentation') as run:
         config = wandb.config
         train_path, val_path = rank0_first(_get_wb_datasets, run=run, prefix='fluocells-red', alias='latest')
         # old version _get_wb_datasets(run, prefix='fluocells-red', alias='latest')
@@ -83,7 +83,7 @@ def train(config=None, dataset=DATASET, alias=args.alias):
 
 
 def augmentation(config=None, dataset=DATASET, alias=args.alias):
-    with wandb.init(project='fluocells', entity='lclissa', config=config, job_type='sweep_augmentation') as run:
+    with wandb.init(config=config, job_type='sweep_augmentation') as run:
         import random
 
         config = wandb.config
