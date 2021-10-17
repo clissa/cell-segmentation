@@ -16,7 +16,7 @@ Created on Tue May  7 10:42:13 2019
 @author: Luca Clissa
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
-           '_resize', '_zoom', '_rotate', '_warp', '_brightness']
+           '_resize', '_zoom', '_rotate', '_warp', '_brightness', '_contrast', '_saturation', '_hue']
 
 import random
 from pathlib import Path
@@ -188,6 +188,36 @@ def _warp(img, scales=[-0.4, -0.2, 0., 0.2, 0.4], wtype=['horizontal', 'vertical
 def _brightness(img, scales=[0.3, 0.4, 0.5, 0.7, 0.8]):
     tfms_dict = {}
     z = Brightness(p=1., draw=scales)
+    b = _batch_ex(len(scales), img)
+    tfms = z(b)
+    for s, t in zip(scales, tfms):
+        tfms_dict[f"Magnitude={s}"] = t
+    return tfms_dict
+
+
+def _contrast(img, scales=[0.65, 0.8, 1., 1.25, 1.55]):
+    tfms_dict = {}
+    z = Contrast(p=1., draw=scales)
+    b = _batch_ex(len(scales), img)
+    tfms = z(b)
+    for s, t in zip(scales, tfms):
+        tfms_dict[f"Magnitude={s}"] = t
+    return tfms_dict
+
+
+def _saturation(img, scales=[0.9, 0.95, 1., 1.05, 1.1]):
+    tfms_dict = {}
+    z = Saturation(p=1., draw=scales)
+    b = _batch_ex(len(scales), img)
+    tfms = z(b)
+    for s, t in zip(scales, tfms):
+        tfms_dict[f"Magnitude={s}"] = t
+    return tfms_dict
+
+
+def _hue(img, scales=[0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95]):
+    tfms_dict = {}
+    z = Hue(p=1., draw=scales)
     b = _batch_ex(len(scales), img)
     tfms = z(b)
     for s, t in zip(scales, tfms):
