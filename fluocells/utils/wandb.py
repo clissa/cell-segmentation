@@ -160,9 +160,9 @@ def _zoom(img, scales=[0.5, 0.7, 0.9, 1.1, 1.3, 1.5], mode=['bilinear', 'bicubic
     tfms_dict = {}
     for args in product(mode, pad_mode):
         m, p = args
-        z = Zoom(p=1., draw=scales, draw_x=_random_coord(), draw_y=_random_coord(), mode=m, pad_mode=p, size=512)
+        f = Zoom(p=1., draw=scales, draw_x=_random_coord(), draw_y=_random_coord(), mode=m, pad_mode=p, size=512)
         b = _batch_ex(len(scales), img)
-        tfms = z(b)
+        tfms = f(b)
         for s, t in zip(scales, tfms):
             tfms_dict[f"Scale={s}, Mode={m}, Padding={p}"] = t
     return tfms_dict
@@ -172,9 +172,9 @@ def _rotate(img, angles=[-25, -10, 0, 10, 25], mode=['bilinear', 'bicubic'], pad
     tfms_dict = {}
     for args in product(mode, pad_mode):
         m, p = args
-        z = Rotate(p=1., draw=angles, mode=m, pad_mode=p, size=512)
+        f = Rotate(p=1., draw=angles, mode=m, pad_mode=p, size=512)
         b = _batch_ex(len(angles), img)
-        tfms = z(b)
+        tfms = f(b)
         for s, t in zip(angles, tfms):
             tfms_dict[f"Angle={s}, Mode={m}, Padding={p}"] = t
     return tfms_dict
@@ -196,9 +196,9 @@ def _warp(img, scales=[-0.4, -0.2, 0., 0.2, 0.4], wtype=['horizontal', 'vertical
 
 def _brightness(img, scales=[0.3, 0.4, 0.5, 0.7, 0.8]):
     tfms_dict = {}
-    z = Brightness(p=1., draw=scales)
+    # f =  Brightness(p=1., draw=scales)
     b = _batch_ex(len(scales), img)
-    tfms = z(b)
+    tfms = b.brightness(p=1., draw=scales)  # f(b)
     for s, t in zip(scales, tfms):
         tfms_dict[f"Magnitude={s}"] = t
     return tfms_dict
@@ -206,9 +206,9 @@ def _brightness(img, scales=[0.3, 0.4, 0.5, 0.7, 0.8]):
 
 def _contrast(img, scales=[0.65, 0.8, 1., 1.25, 1.55]):
     tfms_dict = {}
-    z = Contrast(p=1., draw=scales)
+    # f =  Contrast(p=1., draw=scales)
     b = _batch_ex(len(scales), img)
-    tfms = z(b)
+    tfms = b.contrast(p=1., draw=scales)  # f(b)
     for s, t in zip(scales, tfms):
         tfms_dict[f"Magnitude={s}"] = t
     return tfms_dict
@@ -216,19 +216,19 @@ def _contrast(img, scales=[0.65, 0.8, 1., 1.25, 1.55]):
 
 def _saturation(img, scales=[0.9, 0.95, 1., 1.05, 1.1]):
     tfms_dict = {}
-    z = Saturation(p=1., draw=scales)
+    # f =  Saturation(p=1., draw=scales)
     b = _batch_ex(len(scales), img)
-    tfms = z(b)
+    tfms = b.saturation(p=1., draw=scales)  # f(b)
     for s, t in zip(scales, tfms):
         tfms_dict[f"Magnitude={s}"] = t
     return tfms_dict
 
 
-def _hue(img, scales=[0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95]):
+def _hue(img, scales=[0.1, 0.3, 0.5, 0.7, 0.9]):  # 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95]):
     tfms_dict = {}
-    z = Hue(p=1., draw=scales)
+    # f =  Hue(p=1., draw=scales)
     b = _batch_ex(len(scales), img)
-    tfms = z(b)
+    tfms = b.hue(p=1., draw=scales)  # f(b)
     for s, t in zip(scales, tfms):
         tfms_dict[f"Magnitude={s}"] = t
     return tfms_dict
