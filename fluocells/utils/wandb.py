@@ -139,7 +139,7 @@ def _random_coord(min_c=0.3, max_c=0.7):
     return random.uniform(min_c, max_c)
 
 
-def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Border', 'Reflection']):
+def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=[PadMode.Border, PadMode.Reflection]):
     tfms_dict = {}
     for args in product(sizes, methods, pad_mode):
         s, m, p = args
