@@ -150,9 +150,10 @@ def _resize(img, sizes=[512], methods=['Crop', 'Pad', 'Squish'], pad_mode=['Bord
 
 def _random_resized_crop(img, sizes=[512]):
     tfms_dict = {}
-    for s in sizes:
-        tfmd = RandomResizedCrop(size=s, min_scale=0.6, max_scale=1.2, ratio=(0.7, 1.3))(img)
-        tfms_dict[f"Size={s}"] = tfmd
+    for idx in range(4):
+        for s in sizes:
+            tfmd = RandomResizedCrop(size=s, min_scale=0.6, max_scale=1.2, ratio=(0.7, 1.3))(img)
+            tfms_dict[f"Size={s}; sample {idx}"] = tfmd
     return tfms_dict
 
 
