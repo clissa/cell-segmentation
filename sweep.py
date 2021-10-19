@@ -96,6 +96,18 @@ def augmentation(config=None, dataset=DATASET, alias=args.alias):
         random.seed(seed)
         sample_paths = random.sample(fnames, n_samples)
 
+        section_dict = {
+            'resize': 'Resize',
+            'random_resized_crop': 'Resize',
+            'zoom': 'Perspective',
+            'warp': 'Perspective',
+            'rotate': 'Perspective',
+            'brightness': 'Colourspace',
+            'contrast': 'Colourspace',
+            'saturation': 'Colourspace',
+            'hue': 'Colourspace',
+        }
+
         # TODO:
         # - implement configurable augmentation pipeline
         # - setup W&B logging
@@ -105,11 +117,13 @@ def augmentation(config=None, dataset=DATASET, alias=args.alias):
             img = PILImage.create(img_path)
             tfms = tfm(img)
             # log one section per each image composed by original image + augmented versions
-            wandb.log({config.tfm.title(): [
-                                               wandb.Image(img, caption=img_path.name, grouping=img_path.name)] + [
-                wandb.Image(tfmd,
-                            caption=cpt,
-                            grouping=img_path.name) for cpt, tfmd in tfms.items()]
+            wandb.log({f"{section_dict[config.tfm]}/{config.tfm.title()}": [
+                                                                               wandb.Image(img, caption=img_path.name,
+                                                                                           grouping=img_path.name)] + [
+                                                                               wandb.Image(tfmd,
+                                                                                           caption=cpt,
+                                                                                           grouping=img_path.name) for
+                                                                               cpt, tfmd in tfms.items()]
                        }
                       )
 
