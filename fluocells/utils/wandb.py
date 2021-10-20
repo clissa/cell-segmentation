@@ -52,34 +52,35 @@ def _get_wb_datasets(run, prefix="fluocells-red", alias='latest'):
     return train_path, val_path
 
 
-def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], cfg=None):
+def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
     """Download dataset artifact and setup dataloaders according to configuration parameters. Return dls: DataLoaders"""
 
     def label_func(p):
         return Path(str(p).replace('images', 'masks'))
 
-    if isinstance(cfg, dict):
-        cfg = namedtuple("WBConfig", cfg.keys())(*cfg.values())
+    if isinstance(config, dict):
+        config = namedtuple("WBConfig", config.keys())(*config.values())
 
     splitter = GrandparentSplitter(train_name='train', valid_name='valid')
 
     dls = SegmentationDataLoaders.from_label_func(
-        train_path.parent, bs=cfg.batch_size, fnames=_get_train_val_names(train_path, val_path), label_func=label_func,
+        train_path.parent, bs=config.batch_size, fnames=_get_train_val_names(train_path, val_path),
+        label_func=label_func,
         splitter=splitter,  # RandomSplitter(0.2, 42),
         item_tfms=pre_tfms, batch_tfms=tfms,
-        num_workers=cfg.dls_workers,
+        num_workers=config.dls_workers,
     )
     return dls
 
 
-def _make_learner(dls, cfg=None):
+def _make_learner(dls, config=None):
     """Use the input dataloaders and configuration to setup a unet_learner with desired parameters. Return learn:
-    Learner and updates cfg.learning_rate if None"""
+    Learner and updates config.learning_rate if None"""
 
-    print('inside learner', cfg)
-    model = globals()[cfg.encoder]
-    optimizer = globals()[cfg.optimizer]
-    loss_func = globals()[cfg.loss_func]()
+    print('inside learner', config)
+    model = globals()[config.encoder]
+    optimizer = globals()[config.optimizer]
+    loss_func = globals()[config.loss_func]()
 
     learn = unet_learner(dls, arch=model,
                          loss_func=loss_func,
@@ -90,7 +91,7 @@ def _make_learner(dls, cfg=None):
                          cbs=[ActivationStats(
                              with_hist=True, every=4), CSVLogger()],
                          path=REPO_PATH / 'trainings', model_dir='models',
-                         pretrained=cfg.pretrained,
+                         pretrained=config.pretrained,
                          n_out=2
                          )  # .to_fp16()
     # learn.fine_tune(6)
@@ -99,16 +100,16 @@ def _make_learner(dls, cfg=None):
     print(
         f'Logs save path: {learn.path}\nModel save path: {learn.path / learn.model_dir}')
 
-    if cfg.learning_rate is None:
+    if config.learning_rate is None:
         lr_min, lr_steep, lr_valley, lr_slide = learn.lr_find(
             suggest_funcs=(minimum, steep, valley, slide))
-        cfg.learning_rate = max(lr_valley, lr_steep)
+        config.learning_rate = max(lr_valley, lr_steep)
         print(
             f"Minimum/10:\t{lr_min:.2e}\nSteepest point:\t{lr_steep:.2e}\nLongest valley:\t{lr_valley:.2e}\nSlide "
             f"interval:\t{lr_slide:.2e}")
     # else:
-    #     print(f"Learning rate: {cfg.learning_rate}")
-    print(f"Using LR={cfg.learning_rate:.6}")
+    #     print(f"Learning rate: {config.learning_rate}")
+    print(f"Using LR={config.learning_rate:.6}")
     return learn
 
 
