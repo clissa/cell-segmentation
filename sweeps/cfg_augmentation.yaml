@@ -1,0 +1,13 @@
+program: sweep.py
+name: sweep_augmentation
+method: grid
+metric:
+  name: '_runtime'
+  goal: 'minimize'
+parameters:
+  tfm:
+    values: [ 'random_resized_crop', 'resize', 'zoom', 'warp', 'rotate', 'brightness', 'contrast', 'saturation', 'hue' ]
+  seed:
+    value: 5
+  n_samples:
+    value: 3

@@ -18,21 +18,6 @@
 #
 #  Run using fastai/image_processing environment
 #  """
-#
-#  """
-#  Created on 5/18/21, 10:33 AM
-#  @author: Luca Clissa
-#
-#
-#  Run using fastai/image_processing environment
-#  """
-#
-#  """
-#  Created on 5/18/21, 10:31 AM
-#  @author: Luca Clissa
-#
-#
-#  """
 
 from pathlib import Path
 import fluocells as fluo

@@ -19,6 +19,14 @@ models/
 trainings/
 wandb/
 
+# PyCharm
+.idea/
+
+# unwanted
+fastai2.4.yml
+SSL_train_all.sh
+fluocells/augmentation.py
+
 ### TEMPLATE
 
 # Byte-compiled / optimized / DLL files

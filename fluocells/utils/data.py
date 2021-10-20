@@ -18,30 +18,7 @@
 #
 #  Run using fastai/image_processing environment
 #  """
-#
-#  """
-#  Created on 5/18/21, 12:36 PM
-#  @author: Luca Clissa
-#
-#
-#  Run using fastai/image_processing environment
-#  """
-#
-#  """
-#  Created on 5/18/21, 12:28 PM
-#  @author: Luca Clissa
-#
-#
-#  Run using fastai/image_processing environment
-#  """
-#
-#  """
-#  Created on 5/18/21, 12:00 PM
-#  @author: Luca Clissa
-#
-#
-#  Run using image_processing environment
-#  """
+
 import numpy as np
 import pandas as pd
 import skimage
