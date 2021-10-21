@@ -17,7 +17,7 @@ Created on Tue May  7 10:42:13 2019
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
            '_resize', '_random_resized_crop', '_zoom', '_rotate', '_warp', '_brightness', '_contrast', '_saturation',
-           '_hue']
+           '_hue', '_compose_tfms_from_config', '_update_config']
 
 import random
 from pathlib import Path
@@ -233,3 +233,17 @@ def _hue(img, scales=[0.1, 0.3, 0.5, 0.7, 0.9]):  # 0.05, 0.15, 0.25, 0.35, 0.45
     for s, t in zip(scales, tfms):
         tfms_dict[f"Magnitude={s}"] = t
     return tfms_dict
+
+
+def _compose_tfms_from_config(tfm: str, args: dict):
+    """Transform config dictionary with key, values items to fastai transform"""
+    import fastai.vision.augment as aug
+    return getattr(aug, tfm)(**args)
+
+
+def _update_config(CLI_args, default_config):
+    """Update default config with user defined arguments from command line"""
+    for k in dir(CLI_args):
+        if not k.startswith('__'):
+            default_config[k] = getattr(CLI_args, k)
+    return default_config
