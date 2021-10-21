@@ -66,7 +66,7 @@ def train(config=None, dataset=DATASET, alias=args.alias):
         dls = _make_dataloader(train_path, val_path, pre_tfms=pre_tfms, tfms=tfms, cfg=config)
         # dls = _make_dataloader(run, config, prefix=dataset, alias=alias)
         learn = _make_learner(dls, cfg=config)
-        lr = config.learning_rate
+        lr = config.lr
         model_save_name = f"{config.encoder}_{config.loss_func}_lr{lr:.6}"
         # save_cb = SaveModelWithEpochCallback(fname=model_save_name, at_end=True)
         save_cb = SaveModelCallback(monitor='valid_loss', fname=model_save_name, at_end=True, with_opt=True)

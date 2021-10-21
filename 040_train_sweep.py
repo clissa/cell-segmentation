@@ -130,7 +130,7 @@ sweep_config = {
         "batch_size": {'values': [4, 8, 12]},
         "encoder": {'value': 'resnet18'},
         "pretrained": {'values': [True, False]},
-        "learning_rate": {
+        "lr": {
             "distribution": 'uniform',
             "min": 0.0001,
             "max": 0.1
@@ -159,7 +159,7 @@ if args.crops:
 #     pretrained=True,  # use pre-trained model and train only last layers
 #     #     dropout = 0.5,
 #     one_cycle=False,  # "1cycle" policy -> https://arxiv.org/abs/1803.09820
-#     learning_rate=0.001,
+#     lr=0.001,
 #     # loss_func=loss_func.name,
 #     dls_workers=0,
 #     optimizer=Adam,
@@ -186,7 +186,7 @@ def _make_dataloader(run, cfg=None):
     train_path = train_ds.download(root=REPO_PATH / 'dataset' / f"{train_artifact_ref.split('_')[0]}-split" / 'train')
     val_path = val_ds.download(root=REPO_PATH / 'dataset' / f"{val_artifact_ref.split('_')[0]}-split" / 'valid')
 
-    # cfg = namedtuple("config", hyperparameter_defaults.keys())(*hyperparameter_defaults.values())
+    # config = namedtuple("config", hyperparameter_defaults.keys())(*hyperparameter_defaults.values())
     def label_func(p):
         return Path(str(p).replace('images', 'masks'))
 
@@ -215,14 +215,14 @@ def _make_dataloader(run, cfg=None):
     return dls
 
 
-def _make_learner(dls, cfg=None):
+def _make_learner(dls, config=None):
     """Use the input dataloaders and configuration to setup a unet_learner with desired parameters. Return learn:
-    Learner and updates cfg.learning_rate if None"""
+    Learner and updates config.lr if None"""
 
-    print('inside learner', cfg)
-    model = globals()[cfg.encoder]
-    optimizer = globals()[cfg.optimizer]
-    loss_func = globals()[cfg.loss_func]
+    print('inside learner', config)
+    model = globals()[config.encoder]
+    optimizer = globals()[config.optimizer]
+    loss_func = globals()[config.loss_func]
 
     learn = unet_learner(dls, arch=model,
                          loss_func=loss_func(),
@@ -233,7 +233,7 @@ def _make_learner(dls, cfg=None):
                          cbs=[ActivationStats(
                              with_hist=True, every=4), CSVLogger()],
                          path=REPO_PATH / 'trainings', model_dir='models',
-                         pretrained=cfg.pretrained,
+                         pretrained=config.pretrained,
                          n_out=2
                          )  # .to_fp16()
     # learn.fine_tune(6)
@@ -242,16 +242,16 @@ def _make_learner(dls, cfg=None):
     print(
         f'Logs save path: {learn.path}\nModel save path: {learn.path / learn.model_dir}')
 
-    if cfg.learning_rate is None:
+    if config.lr is None:
         lr_min, lr_steep, lr_valley, lr_slide = learn.lr_find(
             suggest_funcs=(minimum, steep, valley, slide))
-        cfg.learning_rate = max(lr_valley, lr_steep)
+        config.lr = max(lr_valley, lr_steep)
         print(
             f"Minimum/10:\t{lr_min:.2e}\nSteepest point:\t{lr_steep:.2e}\nLongest valley:\t{lr_valley:.2e}\nSlide "
             f"interval:\t{lr_slide:.2e}")
     # else:
-    #     print(f"Learning rate: {cfg.learning_rate}")
-    print(f"Using LR={cfg.learning_rate:.6}")
+    #     print(f"Learning rate: {config.lr}")
+    print(f"Using LR={config.lr:.6}")
     return learn
 
 
@@ -259,9 +259,9 @@ def train(config=None):
     with wandb.init(project='fluocells', entity='lclissa', config=config, job_type='sweep_train') as run:
         config = wandb.config
         dls = _make_dataloader(run, config)
-        learn = _make_learner(dls, cfg=config)
+        learn = _make_learner(dls, config=config)
 
-        lr = config.learning_rate
+        lr = config.lr
         model_save_name = f"{config.encoder}_{config.loss_func}_lr{lr:.6}"
         # save_cb = SaveModelWithEpochCallback(fname=model_save_name, at_end=True)
         save_cb = SaveModelCallback(monitor='valid_loss', fname=model_save_name, at_end=True, with_opt=True)

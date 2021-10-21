@@ -75,9 +75,8 @@ def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
 
 def _make_learner(dls, config=None):
     """Use the input dataloaders and configuration to setup a unet_learner with desired parameters. Return learn:
-    Learner and updates config.learning_rate if None"""
+    Learner and updates config.lr if None"""
 
-    print('inside learner', config)
     model = globals()[config.encoder]
     optimizer = globals()[config.optimizer]
     loss_func = globals()[config.loss_func]()
@@ -100,16 +99,16 @@ def _make_learner(dls, config=None):
     print(
         f'Logs save path: {learn.path}\nModel save path: {learn.path / learn.model_dir}')
 
-    if config.learning_rate is None:
+    if config.lr is None:
         lr_min, lr_steep, lr_valley, lr_slide = learn.lr_find(
             suggest_funcs=(minimum, steep, valley, slide))
-        config.learning_rate = max(lr_valley, lr_steep)
+        config.lr = max(lr_valley, lr_steep)
         print(
             f"Minimum/10:\t{lr_min:.2e}\nSteepest point:\t{lr_steep:.2e}\nLongest valley:\t{lr_valley:.2e}\nSlide "
             f"interval:\t{lr_slide:.2e}")
     # else:
-    #     print(f"Learning rate: {config.learning_rate}")
-    print(f"Using LR={config.learning_rate:.6}")
+    #     print(f"Learning rate: {config.lr}")
+    print(f"Using LR={config.lr:.6}")
     return learn
 
 
