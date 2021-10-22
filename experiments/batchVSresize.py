@@ -34,6 +34,8 @@ log = group.add_argument('--log', action="store_true", default=False)
 cfg = group.add_argument('-cfg', '--config', dest='config', type=str, default=None,
                          help="Relative path to the configuration file. Note: only `yaml` files are supported.")
 parser.add_argument('--count', type=int, default=50, help="Number of iterations for the W&B agent")
+
+
 # manual_config = (bs, rsz)
 # config_file = cfg
 # exclusives = itertools.product(manual_config, config_file)
@@ -41,8 +43,19 @@ parser.add_argument('--count', type=int, default=50, help="Number of iterations 
 #     parser.register_conflict(exclusive_grp)
 
 
-def batch_size_VS_resize(config):
-    """batch size VS resize"""
+def _get_params(net, trainable=False):
+    """Return network total parameters (default) or trainable only."""
+    import numpy as np
+    net_params = filter(lambda p: p.requires_grad, net.parameters()) if trainable else net.parameters()
+    weight_count = 0
+    for param in net_params:
+        weight_count += np.prod(param.size())
+    return weight_count
+
+
+def batch_size_VS_resize(config) -> dict:
+    """Run one epoch of training with a given configuration of batch size and resize shape.
+    Return a dict with Learner and collected metrics"""
 
     pre_tfms = [Resize(config.resize)]
 
@@ -58,10 +71,14 @@ def batch_size_VS_resize(config):
 
     if config.log:
         # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
-        metrics = 'Done'
+        n_params = _get_params(learn, trainable=False)
+        n_trainable_params = _get_params(learn, trainable=True)
+        metrics = {'batch_size': config.batch_size, 'shape': (config.resize, config.resize),
+                   'n_params': n_params, 'n_trainable_params': n_trainable_params}
     else:
         metrics = None
     return {'learn': learn, 'metrics': metrics}
+
 
 if __name__ == '__main__':
     # initialization for testing
