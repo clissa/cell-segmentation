@@ -30,6 +30,7 @@ parser = argparse.ArgumentParser(parents=[wandb_parser])
 group = parser.add_argument_group('experiment configuraton')
 bs = group.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=2)
 rsz = group.add_argument('-rsz', '--resize', dest='resize', type=int, default=512)
+log = group.add_argument('--log', action="store_true", default=False)
 cfg = group.add_argument('-cfg', '--config', dest='config', type=str, default=None,
                          help="Relative path to the configuration file. Note: only `yaml` files are supported.")
 parser.add_argument('--count', type=int, default=50, help="Number of iterations for the W&B agent")
@@ -54,8 +55,13 @@ def batch_size_VS_resize(config):
 
     print('Start training')
     learn.fit(n_epoch=1, lr=0.001)
-    return learn
 
+    if config.log:
+        # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
+        metrics = 'Done'
+    else:
+        metrics = None
+    return {'learn': learn, 'metrics': metrics}
 
 if __name__ == '__main__':
     # initialization for testing
@@ -65,4 +71,10 @@ if __name__ == '__main__':
     if args.config is None:
         config = _init_config(parser, args)
     print('Setup with config:\n', config)
-    batch_size_VS_resize(config)
+    if args.log:
+        # TODO: execute through wandb decorator
+        # @wandb_session
+        # batch_size_VS_resize(config)
+        pass
+    else:
+        batch_size_VS_resize(config)
