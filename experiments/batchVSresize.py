@@ -20,6 +20,8 @@ from fluocells.losses import DiceLoss
 from fluocells.utils.wandb import _make_dataloader, wandb_parser, _init_config
 import argparse
 
+# The following code contains comments that involve a tentative implementation using mutually exclusive args groups:
+# adaptation from template at https://newbedev.com/does-argparse-python-support-mutually-exclusive-groups-of-arguments
 # import conflictsparse # not available
 # import itertools
 
@@ -37,23 +39,30 @@ parser.add_argument('--count', type=int, default=50, help="Number of iterations 
 # for exclusive_grp in exclusives:
 #     parser.register_conflict(exclusive_grp)
 
-# initialization for testing
-# args = parser.parse_args(['-bs=8', '-rsz=224'])
 
-args = parser.parse_args()
+def batch_size_VS_resize(config):
+    """batch size VS resize"""
 
-if args.config is None:
-    config = _init_config(parser, args)
-print('Setup with config:\n', config)
+    pre_tfms = [Resize(config.resize)]
 
-pre_tfms = [Resize(config.resize)]
+    print('Initializing DataLoaders')
+    dls = _make_dataloader(TRAIN_PATH, VAL_PATH, pre_tfms=pre_tfms, config=config)
 
-print('Initializing DataLoaders')
-dls = _make_dataloader(TRAIN_PATH, VAL_PATH, pre_tfms=pre_tfms, config=config)
+    print('Initializing Learner')
+    model = resnet18
+    learn = unet_learner(dls, arch=model, n_out=2, loss_func=DiceLoss())
 
-print('Initializing Learner')
-model = resnet18
-learn = unet_learner(dls, arch=model, n_out=2, loss_func=DiceLoss())
+    print('Start training')
+    learn.fit(n_epoch=1, lr=0.001)
+    return learn
 
-print('Start training')
-learn.fit(n_epoch=1, lr=0.001)
+
+if __name__ == '__main__':
+    # initialization for testing
+    # args = parser.parse_args(['-bs=8', '-rsz=224'])
+    args = parser.parse_args()
+
+    if args.config is None:
+        config = _init_config(parser, args)
+    print('Setup with config:\n', config)
+    batch_size_VS_resize(config)
