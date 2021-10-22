@@ -69,7 +69,6 @@ def _get_wb_datasets(run, prefix="fluocells-red", alias='latest'):
 
 def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
     """Download dataset artifact and setup dataloaders according to configuration parameters. Return dls: DataLoaders"""
-    print('Inside dataloader\n', config)
 
     def label_func(p):
         return Path(str(p).replace('images', 'masks'))
@@ -342,6 +341,11 @@ def _init_config(parser, args):
         @autoassign(*attr_to_store)
         def __init__(self, **kwargs):
             pass
+
+        def __repr__(self):
+            incipit = "Configurator object:\n"
+            attrs = [f"{attr}: {getattr(self, attr)}" for attr in dir(self) if not attr.startswith('__')]
+            return incipit + '\n'.join(attrs)
 
     config = Configurator(**vars(args))
     return config
