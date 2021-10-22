@@ -17,7 +17,7 @@ Created on Tue May  7 10:42:13 2019
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
            '_resize', '_random_resized_crop', '_zoom', '_rotate', '_warp', '_brightness', '_contrast', '_saturation',
-           '_hue', '_compose_tfms_from_config', '_update_config']
+           '_hue', '_compose_tfms_from_config', '_update_config', 'wandb_parser', '_init_config']
 
 import random
 from pathlib import Path
@@ -26,6 +26,22 @@ from itertools import product
 from fastai.vision.all import *
 from fluocells.config import REPO_PATH
 from fluocells.losses import *
+import argparse
+from functools import wraps
+from inspect import getfullargspec, isfunction
+from itertools import starmap
+
+wandb_parser = argparse.ArgumentParser(
+    description='Parent parser to initialize arguments related to W&B project and data.', add_help=False)
+group = wandb_parser.add_argument_group('wandb')
+group.add_argument('--proj_name', type=str, help='Name of the W&B project', default='fluocells')
+group.add_argument('--alias', type=str, default='latest', help="Alias for the W&B artifact. Default: 'latest'")
+group.add_argument('-ds', '--dataset', type=str, default='red',
+                   help="Name of the dataset to be uploaded. Values: 'red'(default)|'yellow'")
+group.add_argument('-art_name', '--artifact_name', type=str, default='',
+                   help="Name of the W&B artifact. The default will create a name as f'fuocells-{dataset}',"
+                        "; f'{artifact_name}-{dataset}' otherwise")
+group.add_argument('--crops', type=str, default='', help="Crops dataset folder. Default '', i.e., no crops")
 
 
 def _get_train_val_names(pTr, pVal):
@@ -35,7 +51,6 @@ def _get_train_val_names(pTr, pVal):
 
 def _get_wb_datasets(run, prefix="fluocells-red", alias='latest'):
     """Download train/val datasets artifact. Return (train_path, val_path): paths to datasets"""
-
     # download artifact and set paths
     # fluocells-red_train_data_60:v0
     train_artifact_ref = f"{prefix}_train_data:{alias}"
@@ -54,6 +69,7 @@ def _get_wb_datasets(run, prefix="fluocells-red", alias='latest'):
 
 def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
     """Download dataset artifact and setup dataloaders according to configuration parameters. Return dls: DataLoaders"""
+    print('Inside dataloader\n', config)
 
     def label_func(p):
         return Path(str(p).replace('images', 'masks'))
@@ -63,12 +79,17 @@ def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
 
     splitter = GrandparentSplitter(train_name='train', valid_name='valid')
 
+    try:
+        n_workers = config.dls_workers
+    except:
+        n_workers = 0
+
     dls = SegmentationDataLoaders.from_label_func(
         train_path.parent, bs=config.batch_size, fnames=_get_train_val_names(train_path, val_path),
         label_func=label_func,
         splitter=splitter,  # RandomSplitter(0.2, 42),
         item_tfms=pre_tfms, batch_tfms=tfms,
-        num_workers=config.dls_workers,
+        num_workers=n_workers,
     )
     return dls
 
@@ -84,7 +105,6 @@ def _make_learner(dls, config=None):
     learn = unet_learner(dls, arch=model,
                          loss_func=loss_func,
                          opt_func=optimizer,
-                         # accuracy],
                          metrics=[Dice(), JaccardCoeff(), foreground_acc],
                          #                      cbs=EarlyStoppingCallback(monitor='dice', min_delta=0, patience=2),
                          cbs=[ActivationStats(
@@ -119,7 +139,7 @@ def _get_fitter_name(method_str):
 def _train_learner_with_args(learn, one_cycle=False, multi_gpu=False, **kwargs):
     """Wrapper for training configurations depending on one cycle policy and gpus. Training params are passed as kwargs."""
 
-    fit_func = getattr(learn, "fit") if one_cycle else getattr(learn, "fit_one_cycle")
+    fit_func = getattr(learn, "fit_one_cycle") if one_cycle else getattr(learn, "fit")
     print(f"\nPerforming fit using {_get_fitter_name(fit_func.__str__())} and {'multi' if multi_gpu else 'single'} gpu")
     if multi_gpu:
         with learn.distrib_ctx():
@@ -247,3 +267,81 @@ def _update_config(CLI_args, default_config):
         if not k.startswith('__'):
             default_config[k] = getattr(CLI_args, k)
     return default_config
+
+
+def autoassign(*names, **kwargs):
+    """
+    Adapted to newer python version from https://code.activestate.com/recipes/551763/
+    autoassign(function) -> method
+    autoassign(*argnames) -> decorator
+    autoassign(exclude=argnames) -> decorator
+
+    allow a method to assign (some of) its arguments as attributes of
+    'self' automatically.  E.g.
+
+    >>> class Foo(object):
+    ...     @autoassign
+    ...     def __init__(self, foo, bar): pass
+    ...
+    >>> breakfast = Foo('spam', 'eggs')
+    >>> breakfast.foo, breakfast.bar
+    ('spam', 'eggs')
+
+    To restrict autoassignment to 'bar' and 'baz', write:
+
+        @autoassign('bar', 'baz')
+        def method(self, foo, bar, baz): ...
+
+    To prevent 'foo' and 'baz' from being autoassigned, use:
+
+        @autoassign(exclude=('foo', 'baz'))
+        def method(self, foo, bar, baz): ...
+    """
+    if kwargs:
+        exclude, f = set(kwargs['exclude']), None
+        sieve = lambda l: filter(lambda nv: nv[0] not in exclude, l)
+    elif len(names) == 1 and isfunction(names[0]):
+        f = names[0]
+        sieve = lambda l: l
+    else:
+        names, f = set(names), None
+        sieve = lambda l: filter(lambda nv: nv[0] in names, l)
+
+    def decorator(f):
+
+        fargnames, _, _, fdefaults, _, _, _ = getfullargspec(f)
+        # Remove self from fargnames and make sure fdefault is a tuple
+        fargnames, fdefaults = fargnames[1:], fdefaults or ()
+        defaults = list(sieve(zip(reversed(fargnames), reversed(fdefaults))))
+
+        @wraps(f)
+        def decorated(self, *args, **kwargs):
+            assigned = dict(sieve(zip(fargnames, args)))
+            assigned.update(sieve(kwargs.items()))
+            for _ in starmap(assigned.setdefault, defaults): pass
+            self.__dict__.update(assigned)
+            return f(self, *args, **kwargs)
+
+        return decorated
+
+    return f and decorator(f) or decorator
+
+
+def _get_action_group(parser, group_name):
+    for group in parser._action_groups:
+        if group.title == group_name:
+            return group
+
+
+def _init_config(parser, args):
+    """Helper function to initialize a configuration object with CLI args specified by the user"""
+    experiment_config_group = _get_action_group(parser, 'experiment configuraton')
+    attr_to_store = [action.dest for action in experiment_config_group._group_actions[:-1]]
+
+    class Configurator:
+        @autoassign(*attr_to_store)
+        def __init__(self, **kwargs):
+            pass
+
+    config = Configurator(**vars(args))
+    return config
