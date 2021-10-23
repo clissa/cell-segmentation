@@ -17,7 +17,7 @@
 from fluocells.config import TRAIN_PATH, VAL_PATH
 from fastai.vision.all import Resize, resnet18, unet_learner
 from fluocells.losses import DiceLoss
-from fluocells.utils.wandb import _make_dataloader, wandb_parser, _init_config
+from fluocells.utils.wandb import _make_dataloader, wandb_parser, _init_config, wandb_session
 import argparse
 
 # The following code contains comments that involve a tentative implementation using mutually exclusive args groups:
@@ -89,9 +89,8 @@ if __name__ == '__main__':
         config = _init_config(parser, args)
     print('Setup with config:\n', config)
     if args.log:
-        # TODO: execute through wandb decorator
-        # @wandb_session
-        # batch_size_VS_resize(config)
-        pass
+        # wandb decorator
+        batch_size_VS_resize = wandb_session(batch_size_VS_resize)
+        batch_size_VS_resize(config=config)
     else:
         batch_size_VS_resize(config)

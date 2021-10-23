@@ -17,7 +17,7 @@ Created on Tue May  7 10:42:13 2019
 """
 __all__ = ['_get_train_val_names', '_get_wb_datasets', '_make_dataloader', '_make_learner', '_train_learner_with_args',
            '_resize', '_random_resized_crop', '_zoom', '_rotate', '_warp', '_brightness', '_contrast', '_saturation',
-           '_hue', '_compose_tfms_from_config', '_update_config', 'wandb_parser', '_init_config']
+           '_hue', '_compose_tfms_from_config', '_update_config', 'wandb_parser', '_init_config', 'wandb_session']
 
 import random
 from pathlib import Path
@@ -349,3 +349,16 @@ def _init_config(parser, args):
 
     config = Configurator(**vars(args))
     return config
+
+
+def wandb_session(f):
+    @wraps(f)
+    def run_session(config):
+        import wandb
+        with wandb.init(project='fluocells', config=config, job_type='experiment',
+                        group=f.__name__.replace('_', ' ').title()) as run:
+            res_dict = f(config)
+            wandb.log(res_dict['metrics'])
+        return res_dict
+
+    return run_session
