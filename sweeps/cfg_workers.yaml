@@ -11,7 +11,7 @@ parameters:
     values: [ 16, 32 ]
   epochs:
     value: 2
-  learning_rate:
+  lr:
     value: 0.001
   encoder:
     value: "resnet18"

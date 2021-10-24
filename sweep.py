@@ -63,9 +63,9 @@ def train(config=None, dataset=DATASET, alias=args.alias):
                 min_zoom=0.9, max_zoom=1.1,
                 max_warp=0, max_rotate=15.0)
         ]
-        dls = _make_dataloader(train_path, val_path, pre_tfms=pre_tfms, tfms=tfms, cfg=config)
+        dls = _make_dataloader(train_path, val_path, pre_tfms=pre_tfms, tfms=tfms, config=config)
         # dls = _make_dataloader(run, config, prefix=dataset, alias=alias)
-        learn = _make_learner(dls, cfg=config)
+        learn = _make_learner(dls, config=config)
         lr = config.lr
         model_save_name = f"{config.encoder}_{config.loss_func}_lr{lr:.6}"
         # save_cb = SaveModelWithEpochCallback(fname=model_save_name, at_end=True)
