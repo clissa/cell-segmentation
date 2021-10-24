@@ -80,7 +80,7 @@ def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
 
     try:
         n_workers = config.dls_workers
-    except:
+    except NameError:
         n_workers = 0
 
     dls = SegmentationDataLoaders.from_label_func(
