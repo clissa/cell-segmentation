@@ -23,7 +23,7 @@ import argparse
 from fastai.callback.wandb import *
 from fastai.vision.all import *
 from fastai.distributed import *
-from fluocells.utils.wandb import *
+from fluocells.wandb.utils import *
 
 parser = argparse.ArgumentParser(description='Setup and run a W&B sweep for hyperparamenters comparison.')
 parser.add_argument('--proj_name', type=str, help='Name of the W&B project', default='fluocells')
