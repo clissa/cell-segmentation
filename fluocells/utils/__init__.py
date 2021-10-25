@@ -18,4 +18,41 @@
 #
 #  Run using fastai/image_processing environment
 #  """
+from torch import cuda
 
+
+def _get_less_used_gpu():
+    """Inspect cached/reserved and allocated memory on all gpus and return the id of the less used device"""
+    cur_allocated_mem = {}
+    cur_cached_mem = {}
+    max_allocated_mem = {}
+    max_cached_mem = {}
+    for i in range(cuda.device_count()):
+        cur_allocated_mem[i] = cuda.memory_allocated(i)
+        cur_cached_mem[i] = cuda.memory_reserved(i)
+        max_allocated_mem[i] = cuda.max_memory_allocated(i)
+        max_cached_mem[i] = cuda.max_memory_reserved(i)
+    print('Current allocated memory:', cur_allocated_mem)
+    print('Current reserved memory:', cur_cached_mem)
+    print('Maximum allocated memory:', max_allocated_mem)
+    print('Maximum reserved memory:', max_cached_mem)
+    min_allocated = min(cur_allocated_mem, key=cur_allocated_mem.get)
+    print(min_allocated)
+    return min_allocated
+
+
+def free_memory(to_delete: list, debug=False):
+    import gc
+    import inspect
+    calling_namespace = inspect.currentframe().f_back
+    if debug:
+        print('Before:')
+        _get_less_used_gpu()
+
+    for _var in to_delete:
+        calling_namespace.f_locals.pop(_var, None)
+        gc.collect()
+        cuda.empty_cache()
+    if debug:
+        print('After:')
+        _get_less_used_gpu()
