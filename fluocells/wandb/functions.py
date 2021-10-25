@@ -101,7 +101,7 @@ def batch_size_VS_resize(config=None) -> dict:
     except RuntimeError:
         print('WARNING: the run was ended due to Cuda Out Of Memory error --> releasing memory and exiting')
         exec_time = None
-        free_memory(['learn'], debug=True)
+        free_memory(['learn'], debug=False)
 
     if config.log:
         # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
@@ -114,8 +114,8 @@ def batch_size_VS_resize(config=None) -> dict:
     # freeing memory
     # learn.zero_grad(set_to_none=True)
     # free_memory(['learn'], debug=True)
-    print('End of training:')
-    get_less_used_gpu()
+    # print('End of training:')
+    # get_less_used_gpu()
 
     return {'metrics': metrics}
     # return {'learn': learn, 'metrics': metrics}

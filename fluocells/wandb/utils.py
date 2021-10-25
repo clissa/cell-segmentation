@@ -252,6 +252,6 @@ def wandb_session(f):
             config = wandb.config
             res_dict = f(config)
             wandb.log(res_dict['metrics'])
-            free_memory(['res_dict'], debug=True)
+            free_memory(['res_dict'], debug=False)
         return
     return run_session
