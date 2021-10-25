@@ -1,0 +1,15 @@
+program: sweep.py
+name: sweep_bsVSsize
+method: grid
+metric:
+  name: '_runtime'
+  goal: 'minimize'
+parameters:
+  batch_size:
+    values: [ 6, 12, 18 ]
+  resize:
+    values: [ 440, 512, 768, 1024 ]
+  encoder:
+    values: [ 'resnet18', 'resnet34' ]
+  log:
+    value: True
