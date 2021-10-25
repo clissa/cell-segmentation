@@ -38,7 +38,7 @@ def get_less_used_gpu():
     print('Maximum allocated memory:', max_allocated_mem)
     print('Maximum reserved memory:', max_cached_mem)
     min_allocated = min(cur_allocated_mem, key=cur_allocated_mem.get)
-    print(min_allocated)
+    print('Suggested GPU:', min_allocated)
     return min_allocated
 
 
