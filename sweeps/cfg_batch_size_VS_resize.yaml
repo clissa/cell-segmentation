@@ -1,6 +1,6 @@
 program: sweep.py
 name: sweep_bsVSsize
-method: grid
+method: random
 metric:
   name: 'runtime'
   goal: 'minimize'
