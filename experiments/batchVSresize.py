@@ -29,8 +29,6 @@ rsz = group.add_argument('-rsz', '--resize', dest='resize', type=int, default=51
 log = group.add_argument('--log', action="store_true", default=False)
 cfg = group.add_argument('-cfg', '--config', dest='config', type=str, default=None,
                          help="Relative path to the configuration file. Note: only `yaml` files are supported.")
-parser.add_argument('--count', type=int, default=50, help="Number of iterations for the W&B agent")
-
 
 # manual_config = (bs, rsz)
 # config_file = cfg
