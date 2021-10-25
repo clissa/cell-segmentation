@@ -110,7 +110,6 @@ def _make_learner(dls, config=None):
                          pretrained=config.pretrained,
                          n_out=2
                          )  # .to_fp16()
-    # learn.fine_tune(6)
 
     learn.model_dir = learn.model_dir + "/" + learn.loss_func.name
     print(
@@ -247,11 +246,12 @@ def wandb_session(f):
     @wraps(f)
     def run_session(config=None):
         import wandb
+        from fluocells.utils import free_memory
         with wandb.init(project='fluocells', config=config, job_type='experiment',
                         group=f.__name__.replace('_', ' ').title()) as run:
             config = wandb.config
             res_dict = f(config)
             wandb.log(res_dict['metrics'])
-        return res_dict
-
+            free_memory(['res_dict'], debug=True)
+        return
     return run_session
