@@ -10,10 +10,8 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-from fluocells.config import TRAIN_PATH, VAL_PATH
-from fastai.vision.all import Resize, resnet18, unet_learner
-from fluocells.losses import DiceLoss
-from fluocells.wandb.utils import _make_dataloader, wandb_parser, _init_config, wandb_session
+from fluocells.wandb.utils import wandb_parser, wandb_session, _init_config
+from fluocells.wandb.functions import batch_size_VS_resize
 import argparse
 
 # The following code contains comments that involve a tentative implementation using mutually exclusive args groups:
@@ -35,43 +33,6 @@ cfg = group.add_argument('-cfg', '--config', dest='config', type=str, default=No
 # exclusives = itertools.product(manual_config, config_file)
 # for exclusive_grp in exclusives:
 #     parser.register_conflict(exclusive_grp)
-
-
-def _get_params(net, trainable=False):
-    """Return network total parameters (default) or trainable only."""
-    import numpy as np
-    net_params = filter(lambda p: p.requires_grad, net.parameters()) if trainable else net.parameters()
-    weight_count = 0
-    for param in net_params:
-        weight_count += np.prod(param.size())
-    return weight_count
-
-
-def batch_size_VS_resize(config) -> dict:
-    """Run one epoch of training with a given configuration of batch size and resize shape.
-    Return a dict with Learner and collected metrics"""
-
-    pre_tfms = [Resize(config.resize)]
-
-    print('Initializing DataLoaders')
-    dls = _make_dataloader(TRAIN_PATH, VAL_PATH, pre_tfms=pre_tfms, config=config)
-
-    print('Initializing Learner')
-    model = resnet18
-    learn = unet_learner(dls, arch=model, n_out=2, loss_func=DiceLoss())
-
-    print('Start training')
-    learn.fit(n_epoch=1, lr=0.001)
-
-    if config.log:
-        # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
-        n_params = _get_params(learn, trainable=False)
-        n_trainable_params = _get_params(learn, trainable=True)
-        metrics = {'batch_size': config.batch_size, 'shape': (config.resize, config.resize),
-                   'n_params': n_params, 'n_trainable_params': n_trainable_params}
-    else:
-        metrics = None
-    return {'learn': learn, 'metrics': metrics}
 
 
 if __name__ == '__main__':
