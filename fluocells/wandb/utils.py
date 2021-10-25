@@ -245,10 +245,11 @@ def _init_config(parser, args):
 
 def wandb_session(f):
     @wraps(f)
-    def run_session(config):
+    def run_session(config=None):
         import wandb
         with wandb.init(project='fluocells', config=config, job_type='experiment',
                         group=f.__name__.replace('_', ' ').title()) as run:
+            config = wandb.config
             res_dict = f(config)
             wandb.log(res_dict['metrics'])
         return res_dict
