@@ -107,8 +107,9 @@ def batch_size_VS_resize(config=None) -> dict:
         # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
         n_params = _get_params(learn, trainable=False)
         n_trainable_params = _get_params(learn, trainable=True)
-        metrics = {'runtime': exec_time, 'batch_size': config.batch_size, 'shape': (config.resize, config.resize),
-                   'n_params': n_params, 'n_trainable_params': n_trainable_params}
+        metrics = {'Execution time': exec_time, 'Batch': config.batch_size, 'Shape': config.resize,
+                   'Total parameters': n_params, 'Trainable Parameters': n_trainable_params}
+        print(metrics)
     else:
         metrics = None
     # freeing memory
