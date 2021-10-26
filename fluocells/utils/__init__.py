@@ -22,7 +22,7 @@ __all__ = ['get_less_used_gpu', 'free_memory']
 from torch import cuda
 
 
-def get_less_used_gpu():
+def get_less_used_gpu(debug=False):
     """Inspect cached/reserved and allocated memory on all gpus and return the id of the less used device"""
     cur_allocated_mem = {}
     cur_cached_mem = {}
@@ -33,12 +33,13 @@ def get_less_used_gpu():
         cur_cached_mem[i] = cuda.memory_reserved(i)
         max_allocated_mem[i] = cuda.max_memory_allocated(i)
         max_cached_mem[i] = cuda.max_memory_reserved(i)
-    print('Current allocated memory:', cur_allocated_mem)
-    print('Current reserved memory:', cur_cached_mem)
-    print('Maximum allocated memory:', max_allocated_mem)
-    print('Maximum reserved memory:', max_cached_mem)
     min_allocated = min(cur_allocated_mem, key=cur_allocated_mem.get)
-    print('Suggested GPU:', min_allocated)
+    if debug:
+        print('Current allocated memory:', cur_allocated_mem)
+        print('Current reserved memory:', cur_cached_mem)
+        print('Maximum allocated memory:', max_allocated_mem)
+        print('Maximum reserved memory:', max_cached_mem)
+        print('Suggested GPU:', min_allocated)
     return min_allocated
 
 
@@ -48,7 +49,7 @@ def free_memory(to_delete: list, debug=False):
     calling_namespace = inspect.currentframe().f_back
     if debug:
         print('Before:')
-        get_less_used_gpu()
+        get_less_used_gpu(debug=True)
 
     for _var in to_delete:
         calling_namespace.f_locals.pop(_var, None)
@@ -56,4 +57,4 @@ def free_memory(to_delete: list, debug=False):
         cuda.empty_cache()
     if debug:
         print('After:')
-        get_less_used_gpu()
+        get_less_used_gpu(debug=True)

@@ -80,7 +80,7 @@ def batch_size_VS_resize(config=None) -> dict:
     """Run one epoch of training with a given configuration of batch size and resize shape.
     Return a dict with Learner and collected metrics"""
     pre_tfms = [Resize(config.resize)]
-    gpu_id = get_less_used_gpu()
+    gpu_id = get_less_used_gpu(debug=False)
     torch.cuda.set_device(f"cuda:{gpu_id}")
 
     print('Initializing DataLoaders')
