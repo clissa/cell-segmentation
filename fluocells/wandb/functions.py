@@ -75,7 +75,7 @@ def _get_params(net, trainable=False):
         weight_count += np.prod(param.size())
     return weight_count
 
-from time import process_time
+import time
 def batch_size_VS_resize(config=None) -> dict:
     """Run one epoch of training with a given configuration of batch size and resize shape.
     Return a dict with Learner and collected metrics"""
@@ -84,7 +84,7 @@ def batch_size_VS_resize(config=None) -> dict:
     torch.cuda.set_device(f"cuda:{gpu_id}")
 
     print('Initializing DataLoaders')
-    start_time = int(round(process_time() * 1000))
+    start_time = time.process_time()
     dls = _make_dataloader(TRAIN_PATH, VAL_PATH, pre_tfms=pre_tfms, config=config)
 
     print('Initializing Learner')
@@ -97,7 +97,7 @@ def batch_size_VS_resize(config=None) -> dict:
     print('Start training')
     try:
         learn.fit(n_epoch=1, lr=0.001)
-        exec_time = int(round(process_time() * 1000)) - start_time
+        exec_time = time.process_time() - start_time
     except RuntimeError:
         print('WARNING: the run was ended due to Cuda Out Of Memory error --> releasing memory and exiting')
         exec_time = None
