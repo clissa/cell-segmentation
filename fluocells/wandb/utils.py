@@ -247,11 +247,16 @@ def wandb_session(f):
     def run_session(config=None):
         import wandb
         from fluocells.utils import free_memory
-        with wandb.init(project='fluocells', config=config, job_type='experiment',
-                        group=f.__name__.replace('_', ' ').title()) as run:
+        with wandb.init(
+                project='fluocells',
+                config=config,
+                # job_type='experiment',
+                # group=f.__name__.replace('_', ' ').title()
+        ) as run:
             config = wandb.config
             res_dict = f(config)
             wandb.log(res_dict['metrics'])
             free_memory(['res_dict'], debug=False)
         return
+
     return run_session
