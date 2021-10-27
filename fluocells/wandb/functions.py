@@ -105,11 +105,12 @@ def batch_size_VS_resize(config=None) -> dict:
 
     if config.log:
         # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
+        wandb.define_metric('Execution time')
         n_params = _get_params(learn, trainable=False)
         n_trainable_params = _get_params(learn, trainable=True)
         metrics = {'Execution time': exec_time, 'Batch': config.batch_size, 'Shape': config.resize,
                    'Total parameters': n_params, 'Trainable Parameters': n_trainable_params}
-        print(metrics)
+        # print(metrics)
     else:
         metrics = None
     # freeing memory
