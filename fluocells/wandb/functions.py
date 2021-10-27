@@ -10,6 +10,8 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
+__all__ = ['augmentation', 'batch_size_VS_resize', 'train']
+
 import wandb
 from pathlib import Path
 from fastai.callback.wandb import *
@@ -75,7 +77,10 @@ def _get_params(net, trainable=False):
         weight_count += np.prod(param.size())
     return weight_count
 
+
 import time
+
+
 def batch_size_VS_resize(config=None) -> dict:
     """Run one epoch of training with a given configuration of batch size and resize shape.
     Return a dict with Learner and collected metrics"""
