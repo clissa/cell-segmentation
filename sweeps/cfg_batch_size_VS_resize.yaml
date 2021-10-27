@@ -1,15 +1,31 @@
-program: sweep.py
-name: sweep_bsVSsize
-method: random
+method: grid
 metric:
-  name: 'runtime'
-  goal: 'minimize'
+  name: Execution time
+  goal: minimize
+name: DataLoader runtime 1
 parameters:
   batch_size:
-    values: [ 6, 12, 18 ]
+    distribution: categorical
+    values:
+      - 6
+      - 8
+      - 12
+      - 16
+      - 32
   resize:
-    values: [ 440, 512, 768, 1024 ]
+    distribution: categorical
+    values:
+      - 224
+      - 440
+      - 512
+      - 768
+      - 1024
   encoder:
-    values: [ 'resnet18', 'resnet34' ]
+    distribution: categorical
+    values:
+      - resnet18
+      - resnet34
   log:
+    distribution: constant
     value: True
+program: sweep.py
