@@ -11,9 +11,8 @@
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
 import os
-
-from fluocells.wandb.utils import wandb_parser, wandb_session, _init_config
 import argparse
+from fluocells.wandb.utils import wandb_parser, wandb_session, _init_config
 
 # The following code contains comments that involve a tentative implementation using mutually exclusive args groups:
 # adaptation from template at https://newbedev.com/does-argparse-python-support-mutually-exclusive-groups-of-arguments
@@ -40,7 +39,6 @@ args = parser.parse_args()
 
 if args.gpus:
     os.environ['GPUS'] = args.gpus
-    print('Setting', os.getenv('GPUS'))
 
 if __name__ == '__main__':
     # initialization for testing
