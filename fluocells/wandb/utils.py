@@ -65,7 +65,16 @@ def _get_wb_datasets(run, prefix="fluocells-red", alias='latest'):
     return train_path, val_path
 
 
-def _make_dataloader(train_path, val_path, tfms=[], pre_tfms=[], config=None):
+default_tfms = [
+    IntToFloatTensor(div_mask=255),
+    # *aug_transforms(size=224,
+    #                 max_lighting=0.1, p_lighting=0.5,
+    #                 min_zoom=0.9, max_zoom=1.1,
+    #                 max_warp=0, max_rotate=15.0),
+]
+
+
+def _make_dataloader(train_path, val_path, tfms=default_tfms, pre_tfms=[], config=None):
     """Download dataset artifact and setup dataloaders according to configuration parameters. Return dls: DataLoaders"""
 
     def label_func(p):
