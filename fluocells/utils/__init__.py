@@ -19,6 +19,7 @@
 #  Run using fastai/image_processing environment
 #  """
 __all__ = ['get_less_used_gpu', 'free_memory']
+
 from torch import cuda
 
 
@@ -26,6 +27,8 @@ def get_less_used_gpu(gpus=None, debug=False):
     """Inspect cached/reserved and allocated memory on specified gpus and return the id of the less used device"""
     if gpus is None:
         gpus = range(cuda.device_count())
+    elif isinstance(gpus, str):
+        gpus = [int(el) for el in gpus.split(',')]
     cur_allocated_mem = {}
     cur_cached_mem = {}
     max_allocated_mem = {}
