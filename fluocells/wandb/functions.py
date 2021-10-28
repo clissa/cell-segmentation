@@ -131,9 +131,6 @@ def batch_size_VS_resize(config=None) -> dict:
     # return {'learn': learn, 'metrics': metrics}
 
 
-background_acc = partial(foreground_acc, bkg_idx=1)
-
-
 def dataloader_VS_loss(config=None) -> dict:
     """Run few epochs of training depending on configuration and track loss as function of batch size and resize shape.
     Return a dict with Learner and collected metrics"""
@@ -152,6 +149,7 @@ def dataloader_VS_loss(config=None) -> dict:
     learn = unet_learner(dls, arch=encoder, n_out=2, loss_func=DiceLoss(),
                          metrics=[Dice(), JaccardCoeff(), background_acc],
                          path=REPO_PATH / 'trainings', model_dir='models',
+                         pretrained=config.pretrained
                          )
 
     print('Start training')
