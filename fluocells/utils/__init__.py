@@ -26,9 +26,25 @@ from torch import cuda
 def get_less_used_gpu(gpus=None, debug=False):
     """Inspect cached/reserved and allocated memory on specified gpus and return the id of the less used device"""
     if gpus is None:
+        print('Falling back to default: all gpus')
         gpus = range(cuda.device_count())
     elif isinstance(gpus, str):
         gpus = [int(el) for el in gpus.split(',')]
+
+    # check gpus arg VS available gpus
+    sys_gpus = list(range(cuda.device_count()))
+    if len(gpus) > len(sys_gpus):
+        gpus = sys_gpus
+        print(
+            f'Specified {len(gpus)} gpus, but only {cuda.device_count()} available. Falling back to default: all gpus.\nIDs:\t{list(gpus)}')
+    elif set(gpus).difference(sys_gpus):
+        # take correctly specified and add as much bad specifications as unused system gpus
+        available_gpus = set(gpus).intersection(sys_gpus)
+        unavailable_gpus = set(gpus).difference(sys_gpus)
+        unused_gpus = set(sys_gpus).difference(gpus)
+        gpus = list(available_gpus) + list(unused_gpus)[:len(unavailable_gpus)]
+        print(f'GPU id {max(gpus)} not available. Falling back to {len(gpus)} device(s).\nIDs:\t{list(gpus)}')
+
     cur_allocated_mem = {}
     cur_cached_mem = {}
     max_allocated_mem = {}
