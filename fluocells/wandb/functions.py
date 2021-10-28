@@ -12,6 +12,7 @@
 #  #limitations under the License.
 __all__ = ['augmentation', 'batch_size_VS_resize', 'train']
 
+import os
 import wandb
 from pathlib import Path
 from fastai.callback.wandb import *
@@ -22,6 +23,7 @@ from fluocells.losses import DiceLoss
 from fluocells.wandb.utils import *
 from fluocells.utils import *
 
+GPUS = os.getenv('GPUS', default=None)
 
 def augmentation(config=None):
     import random
@@ -85,7 +87,7 @@ def batch_size_VS_resize(config=None) -> dict:
     """Run one epoch of training with a given configuration of batch size and resize shape.
     Return a dict with Learner and collected metrics"""
     pre_tfms = [Resize(config.resize)]
-    gpu_id = get_less_used_gpu(debug=False)
+    gpu_id = get_less_used_gpu(gpus=GPUS, debug=True)
     torch.cuda.set_device(f"cuda:{gpu_id}")
 
     print('Initializing DataLoaders')
