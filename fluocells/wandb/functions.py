@@ -139,6 +139,7 @@ def dataloader_VS_loss(config=None) -> dict:
     torch.cuda.set_device(f"cuda:{gpu_id}")
 
     print('Initializing DataLoaders')
+    set_seed(42, reproducible=True)
     dls = _make_dataloader(TRAIN_PATH, VAL_PATH, pre_tfms=pre_tfms, config=config)
 
     print('Initializing Learner')
