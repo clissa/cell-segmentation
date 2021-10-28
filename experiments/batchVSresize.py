@@ -10,8 +10,9 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
+import os
+
 from fluocells.wandb.utils import wandb_parser, wandb_session, _init_config
-from fluocells.wandb.functions import batch_size_VS_resize
 import argparse
 
 # The following code contains comments that involve a tentative implementation using mutually exclusive args groups:
@@ -35,11 +36,16 @@ cfg = group.add_argument('-cfg', '--config', dest='config', type=str, default=No
 # for exclusive_grp in exclusives:
 #     parser.register_conflict(exclusive_grp)
 
+args = parser.parse_args()
+
+if args.gpus:
+    os.environ['GPUS'] = args.gpus
+    print('Setting', os.getenv('GPUS'))
 
 if __name__ == '__main__':
     # initialization for testing
     # args = parser.parse_args(['-bs=8', '-rsz=224'])
-    args = parser.parse_args()
+    from fluocells.wandb.functions import batch_size_VS_resize
 
     if args.config is None:
         config = _init_config(parser, args)
