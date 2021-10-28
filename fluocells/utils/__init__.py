@@ -22,13 +22,15 @@ __all__ = ['get_less_used_gpu', 'free_memory']
 from torch import cuda
 
 
-def get_less_used_gpu(debug=False):
-    """Inspect cached/reserved and allocated memory on all gpus and return the id of the less used device"""
+def get_less_used_gpu(gpus=None, debug=False):
+    """Inspect cached/reserved and allocated memory on specified gpus and return the id of the less used device"""
+    if gpus is None:
+        gpus = range(cuda.device_count())
     cur_allocated_mem = {}
     cur_cached_mem = {}
     max_allocated_mem = {}
     max_cached_mem = {}
-    for i in range(cuda.device_count()):
+    for i in gpus:
         cur_allocated_mem[i] = cuda.memory_allocated(i)
         cur_cached_mem[i] = cuda.memory_reserved(i)
         max_allocated_mem[i] = cuda.max_memory_allocated(i)
