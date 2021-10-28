@@ -157,7 +157,7 @@ def dataloader_VS_loss(config=None) -> dict:
     print('Start training')
     # try:
     # learning rate
-    # lr = learn.lr_find()  # valley
+    lr = learn.lr_find()  # valley
 
     # callbacks
     # wandb_cb = WandbCallback(log=None, log_preds=False, log_dataset=False, log_model=False, )
