@@ -2,7 +2,7 @@ method: grid
 metric:
   name: Execution time
   goal: minimize
-name: DataLoader runtime 1
+name: DataLoader runtime
 parameters:
   batch_size:
     distribution: categorical
