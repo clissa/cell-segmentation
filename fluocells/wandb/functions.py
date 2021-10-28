@@ -111,7 +111,7 @@ def batch_size_VS_resize(config=None) -> dict:
         exec_time = None
         free_memory(['learn'], debug=False)
 
-    if config.log:
+    if getattr(config, 'log', None):
         # TODO: properly configure metrics dictionary with metrics to be tracked by W&B
         wandb.define_metric('Execution time')
         n_params = _get_params(learn, trainable=False)
@@ -180,7 +180,7 @@ def dataloader_VS_loss(config=None) -> dict:
     #     valid_loss = None
     #     free_memory(['learn'], debug=False)
 
-    if config.log:
+    if getattr(config, 'log', None):
         wandb.define_metric('Validation Loss')
         print(learn.validate())
         valid_loss, dice, jacc, fg_acc = learn.validate()
