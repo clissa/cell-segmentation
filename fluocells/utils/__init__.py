@@ -26,7 +26,7 @@ from torch import cuda
 def get_less_used_gpu(gpus=None, debug=False):
     """Inspect cached/reserved and allocated memory on specified gpus and return the id of the less used device"""
     if gpus is None:
-        print('Falling back to default: all gpus')
+        warn = 'Falling back to default: all gpus'
         gpus = range(cuda.device_count())
     elif isinstance(gpus, str):
         gpus = [int(el) for el in gpus.split(',')]
@@ -35,15 +35,14 @@ def get_less_used_gpu(gpus=None, debug=False):
     sys_gpus = list(range(cuda.device_count()))
     if len(gpus) > len(sys_gpus):
         gpus = sys_gpus
-        print(
-            f'Specified {len(gpus)} gpus, but only {cuda.device_count()} available. Falling back to default: all gpus.\nIDs:\t{list(gpus)}')
+        warn = f'WARNING: Specified {len(gpus)} gpus, but only {cuda.device_count()} available. Falling back to default: all gpus.\nIDs:\t{list(gpus)}'
     elif set(gpus).difference(sys_gpus):
         # take correctly specified and add as much bad specifications as unused system gpus
         available_gpus = set(gpus).intersection(sys_gpus)
         unavailable_gpus = set(gpus).difference(sys_gpus)
         unused_gpus = set(sys_gpus).difference(gpus)
         gpus = list(available_gpus) + list(unused_gpus)[:len(unavailable_gpus)]
-        print(f'GPU id {max(gpus)} not available. Falling back to {len(gpus)} device(s).\nIDs:\t{list(gpus)}')
+        warn = f'GPU ids {unavailable_gpus} not available. Falling back to {len(gpus)} device(s).\nIDs:\t{list(gpus)}'
 
     cur_allocated_mem = {}
     cur_cached_mem = {}
@@ -56,10 +55,11 @@ def get_less_used_gpu(gpus=None, debug=False):
         max_cached_mem[i] = cuda.max_memory_reserved(i)
     min_allocated = min(cur_allocated_mem, key=cur_allocated_mem.get)
     if debug:
-        print('Current allocated memory:', cur_allocated_mem)
-        print('Current reserved memory:', cur_cached_mem)
-        print('Maximum allocated memory:', max_allocated_mem)
-        print('Maximum reserved memory:', max_cached_mem)
+        print(warn)
+        print('Current allocated memory:', {f'cuda:{k}': v for k, v in cur_allocated_mem.items()})
+        print('Current reserved memory:', {f'cuda:{k}': v for k, v in cur_cached_mem.items()})
+        print('Maximum allocated memory:', {f'cuda:{k}': v for k, v in max_allocated_mem.items()})
+        print('Maximum reserved memory:', {f'cuda:{k}': v for k, v in max_cached_mem.items()})
         print('Suggested GPU:', min_allocated)
     return min_allocated
 
