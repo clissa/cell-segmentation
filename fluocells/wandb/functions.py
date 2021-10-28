@@ -169,12 +169,14 @@ def dataloader_VS_loss(config=None) -> dict:
     savebest_cb = SaveModelCallback(monitor=monitor, min_delta=min_delta)
 
     # training
-    learn.fit(n_epoch=config.epochs, lr=0.001, cbs=[
-        # wandb_cb,
-        earlystop_cb,
-        savebest_cb
-    ])
-
+    # lr = namedtuple('LRFound', 'valley')(1.58e-04)
+    learn.fit(n_epoch=config.epochs, lr=lr.valley,
+              #           cbs=[
+              #     # wandb_cb,
+              #     earlystop_cb,
+              #     savebest_cb
+              # ]
+              )
     # except RuntimeError:
     #     print('WARNING: the run was ended due to Cuda Out Of Memory error --> releasing memory and exiting')
     #     valid_loss = None
