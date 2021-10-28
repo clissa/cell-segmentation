@@ -155,32 +155,33 @@ def dataloader_VS_loss(config=None) -> dict:
                          )
 
     print('Start training')
-    # try:
-    # learning rate
-    lr = learn.lr_find()  # valley
+    try:
+        # learning rate
+        lr = learn.lr_find()  # valley
 
-    # callbacks
-    # wandb_cb = WandbCallback(log=None, log_preds=False, log_dataset=False, log_model=False, )
+        # callbacks
+        # wandb_cb = WandbCallback(log=None, log_preds=False, log_dataset=False, log_model=False, )
 
-    min_delta = 0.01
-    monitor = 'valid_loss'
-    earlystop_cb = EarlyStoppingCallback(monitor=monitor, comp=None, min_delta=min_delta, patience=5,
-                                         reset_on_fit=True)
-    savebest_cb = SaveModelCallback(monitor=monitor, min_delta=min_delta)
+        min_delta = 0.01
+        monitor = 'valid_loss'
+        earlystop_cb = EarlyStoppingCallback(monitor=monitor, comp=None, min_delta=min_delta, patience=5,
+                                             reset_on_fit=True)
+        savebest_cb = SaveModelCallback(monitor=monitor, min_delta=min_delta)
 
-    # training
-    # lr = namedtuple('LRFound', 'valley')(1.58e-04)
-    learn.fit(n_epoch=config.epochs, lr=lr.valley,
-              #           cbs=[
-              #     # wandb_cb,
-              #     earlystop_cb,
-              #     savebest_cb
-              # ]
-              )
-    # except RuntimeError:
-    #     print('WARNING: the run was ended due to Cuda Out Of Memory error --> releasing memory and exiting')
-    #     valid_loss = None
-    #     free_memory(['learn'], debug=False)
+        # training
+        # lr = namedtuple('LRFound', 'valley')(1.58e-04)
+        learn.fit(n_epoch=config.epochs, lr=lr.valley,
+                  #           cbs=[
+                  #     # wandb_cb,
+                  #     earlystop_cb,
+                  #     savebest_cb
+                  # ]
+                  )
+    except RuntimeError:
+        # TODO: RuntimeError could be raised also from different cuda-related issues
+        print('WARNING: the run was ended due to Cuda Out Of Memory error --> releasing memory and exiting')
+        valid_loss, dice, jacc, fg_acc = [None] * 4
+        free_memory(['learn'], debug=False)
 
     if getattr(config, 'log', None):
         wandb.define_metric('Validation Loss')
