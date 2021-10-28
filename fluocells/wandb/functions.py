@@ -10,7 +10,7 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ['augmentation', 'batch_size_VS_resize', 'train']
+__all__ = ['augmentation', 'batch_size_VS_resize', 'dataloader_VS_loss', 'train']
 
 import os
 import wandb
@@ -18,12 +18,13 @@ from pathlib import Path
 from fastai.callback.wandb import *
 from fastai.vision.all import *
 from fastai.distributed import *
-from fluocells.config import TRAIN_PATH, VAL_PATH
+from fluocells.config import TRAIN_PATH, VAL_PATH, REPO_PATH
 from fluocells.losses import DiceLoss
 from fluocells.wandb.utils import *
 from fluocells.utils import *
 
 GPUS = os.getenv('GPUS', default=None)
+
 
 def augmentation(config=None):
     import random
@@ -128,6 +129,67 @@ def batch_size_VS_resize(config=None) -> dict:
 
     return {'metrics': metrics}
     # return {'learn': learn, 'metrics': metrics}
+
+
+background_acc = partial(foreground_acc, bkg_idx=1)
+
+
+def dataloader_VS_loss(config=None) -> dict:
+    """Run few epochs of training depending on configuration and track loss as function of batch size and resize shape.
+    Return a dict with Learner and collected metrics"""
+    pre_tfms = [Resize(config.resize)]
+    gpu_id = get_less_used_gpu(gpus=GPUS, debug=False)
+    torch.cuda.set_device(f"cuda:{gpu_id}")
+
+    print('Initializing DataLoaders')
+    dls = _make_dataloader(TRAIN_PATH, VAL_PATH, pre_tfms=pre_tfms, config=config)
+
+    print('Initializing Learner')
+    try:
+        encoder = globals()[config.encoder]
+    except:
+        encoder = resnet18
+    learn = unet_learner(dls, arch=encoder, n_out=2, loss_func=DiceLoss(),
+                         metrics=[Dice(), JaccardCoeff(), background_acc],
+                         path=REPO_PATH / 'trainings', model_dir='models',
+                         )
+
+    print('Start training')
+    # try:
+    # learning rate
+    # lr = learn.lr_find()  # valley
+
+    # callbacks
+    # wandb_cb = WandbCallback(log=None, log_preds=False, log_dataset=False, log_model=False, )
+
+    min_delta = 0.01
+    monitor = 'valid_loss'
+    earlystop_cb = EarlyStoppingCallback(monitor=monitor, comp=None, min_delta=min_delta, patience=3,
+                                         reset_on_fit=True)
+    savebest_cb = SaveModelCallback(monitor=monitor, min_delta=min_delta)
+
+    # training
+    learn.fit(n_epoch=config.epochs, lr=0.001, cbs=[
+        # wandb_cb,
+        earlystop_cb,
+        savebest_cb
+    ])
+
+    # except RuntimeError:
+    #     print('WARNING: the run was ended due to Cuda Out Of Memory error --> releasing memory and exiting')
+    #     valid_loss = None
+    #     free_memory(['learn'], debug=False)
+
+    if config.log:
+        wandb.define_metric('Validation Loss')
+        print(learn.validate())
+        valid_loss, dice, jacc, fg_acc = learn.validate()
+        metrics = {'Batch': config.batch_size, 'Shape': config.resize, 'Encoder': encoder.__name__,
+                   'Validation Loss': valid_loss,
+                   'Dice': dice, 'Jaccard': jacc, 'Foreground Accuracy': fg_acc}
+    else:
+        metrics = None
+    return {'metrics': metrics}
 
 
 def train(config=None, dataset='fluocells-red', alias='latest'):
