@@ -24,7 +24,8 @@ parser = argparse.ArgumentParser(parents=[wandb_parser])
 group = parser.add_argument_group('experiment configuraton')
 bs = group.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=2)
 rsz = group.add_argument('-rsz', '--resize', dest='resize', type=int, default=512)
-log = group.add_argument('--log', action="store_true", default=False)
+gpus = group.add_argument('--gpus', dest='gpus', type=str)
+log = group.add_argument('--log', action='store_true', default=False)
 cfg = group.add_argument('-cfg', '--config', dest='config', type=str, default=None,
                          help="Relative path to the configuration file. Note: only `yaml` files are supported.")
 
