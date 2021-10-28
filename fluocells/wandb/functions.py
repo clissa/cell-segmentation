@@ -19,7 +19,7 @@ from fastai.callback.wandb import *
 from fastai.vision.all import *
 from fastai.distributed import *
 from fluocells.config import TRAIN_PATH, VAL_PATH, REPO_PATH
-from fluocells.losses import DiceLoss
+from fluocells.losses import CombinedLoss
 from fluocells.wandb.utils import *
 from fluocells.utils import *
 
@@ -146,8 +146,10 @@ def dataloader_VS_loss(config=None) -> dict:
         encoder = globals()[config.encoder]
     except:
         encoder = resnet18
-    learn = unet_learner(dls, arch=encoder, n_out=2, loss_func=DiceLoss(),
-                         metrics=[Dice(), JaccardCoeff(), background_acc],
+    loss_func = globals()[config.loss_func]
+    loss_func = partial(loss_func, axis=1) if config.loss_func == 'CrossEntropyLossFlat' else loss_func
+    learn = unet_learner(dls, arch=encoder, n_out=2, loss_func=loss_func(),
+                         metrics=[Dice(), JaccardCoeff(), foreground_acc],
                          path=REPO_PATH / 'trainings', model_dir='models',
                          pretrained=config.pretrained
                          )
