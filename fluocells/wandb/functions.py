@@ -182,11 +182,13 @@ def dataloader_VS_loss(config=None) -> dict:
 
     if getattr(config, 'log', None):
         wandb.define_metric('Validation Loss')
-        print(learn.validate())
+        wandb.define_metric('Dice')
+        wandb.define_metric('Jaccard Coefficient')
+        wandb.define_metric('Foreground Accuracy')
         valid_loss, dice, jacc, fg_acc = learn.validate()
         metrics = {'Batch': config.batch_size, 'Shape': config.resize, 'Encoder': encoder.__name__,
                    'Validation Loss': valid_loss,
-                   'Dice': dice, 'Jaccard': jacc, 'Foreground Accuracy': fg_acc}
+                   'Dice': dice, 'Jaccard Coefficient': jacc, 'Foreground Accuracy': fg_acc}
     else:
         metrics = None
     return {'metrics': metrics}
