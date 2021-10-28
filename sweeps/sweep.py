@@ -23,7 +23,7 @@ import argparse
 from fastai.callback.wandb import *
 from fastai.vision.all import *
 from fastai.distributed import *
-from fluocells.wandb.utils import wandb_session
+from fluocells.wandb.utils import wandb_session, wandb_parser
 from fluocells.wandb.functions import *
 
 parser = argparse.ArgumentParser(parents=[wandb_parser])
@@ -42,6 +42,7 @@ def _fit_sweep(proj_name, sweep_config, func, entity='lclissa', count=10):
     wandb.agent(sweep_id, function=func, entity=entity, count=count)
 
 
+NEED_DECORATOR = ['batch_size_VS_resize', 'dataloader_VS_loss']
 if __name__ == '__main__':
     cwd = Path.cwd()
     p_config = cwd / args.config
@@ -57,6 +58,6 @@ if __name__ == '__main__':
 
     function = globals()[args.function]
     # decorate if needed
-    if args.function == 'batch_size_VS_resize':
+    if args.function in NEED_DECORATOR:
         function = wandb_session(function)
     _fit_sweep(args.proj_name, sweep_config=config, func=function, count=args.count)
