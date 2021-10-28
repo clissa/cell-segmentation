@@ -164,7 +164,7 @@ def dataloader_VS_loss(config=None) -> dict:
 
     min_delta = 0.01
     monitor = 'valid_loss'
-    earlystop_cb = EarlyStoppingCallback(monitor=monitor, comp=None, min_delta=min_delta, patience=3,
+    earlystop_cb = EarlyStoppingCallback(monitor=monitor, comp=None, min_delta=min_delta, patience=5,
                                          reset_on_fit=True)
     savebest_cb = SaveModelCallback(monitor=monitor, min_delta=min_delta)
 
