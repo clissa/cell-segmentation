@@ -14,6 +14,8 @@ __all__ = ['ResUnet', 'c_resunet']
 
 from fastai.vision.all import *
 from ._blocks import *
+from ._utils import *
+from fluocells.config import MODELS_PATH
 
 
 class ResUnet(nn.Module):
@@ -97,9 +99,16 @@ def _resunet(
 ) -> ResUnet:
     model = ResUnet(n_features_start, n_out)  # , **kwargs)
     model.__name__ = arch
+    # TODO: implement weights fetching if not present
     if pretrained:
-        print('Pretraining still to implement. Nothing done!')
-        pass
+        # print('Pretraining still to implement. Nothing done!')
+        # pass
+        weights_path = MODELS_PATH / f"c-ResUnet_state_dict.pkl"
+        print('loading pretrained Keras weights from', weights_path)
+        keras_weights = load_pkl(weights_path)
+        Klike_state_dict = state_dict_Kformat(model.state_dict())
+        assert len(keras_weights) == len(Klike_state_dict)
+        copy_weights_k2pt(model, keras_weights, Klike_state_dict)
     #         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
     #         model.load_state_dict(state_dict)
     return model
@@ -107,7 +116,6 @@ def _resunet(
 
 def c_resunet(n_features_start: int = 4, n_out: int = 1, pretrained: bool = False, progress: bool = True,
               **kwargs) -> ResUnet:
-    # TODO: docstring + pretrained implementation
     r"""cResUnet model from `"Automating Cell Counting in Fluorescent Microscopy through Deep Learning with c-ResUnet"
     <https://www.nature.com/articles/s41598-021-01929-5>`_.
     Args:
