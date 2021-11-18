@@ -103,7 +103,7 @@ def _resunet(
     if pretrained:
         # print('Pretraining still to implement. Nothing done!')
         # pass
-        weights_path = MODELS_PATH / f"c-ResUnet_state_dict.pkl"
+        weights_path = MODELS_PATH / f"{arch}_state_dict.pkl"
         print('loading pretrained Keras weights from', weights_path)
         keras_weights = load_pkl(weights_path)
         Klike_state_dict = state_dict_Kformat(model.state_dict())
@@ -114,7 +114,8 @@ def _resunet(
     return model
 
 
-def c_resunet(n_features_start: int = 4, n_out: int = 1, pretrained: bool = False, progress: bool = True,
+def c_resunet(arch='c-ResUnet', n_features_start: int = 4, n_out: int = 1, pretrained: bool = False,
+              progress: bool = True,
               **kwargs) -> ResUnet:
     r"""cResUnet model from `"Automating Cell Counting in Fluorescent Microscopy through Deep Learning with c-ResUnet"
     <https://www.nature.com/articles/s41598-021-01929-5>`_.
@@ -122,5 +123,5 @@ def c_resunet(n_features_start: int = 4, n_out: int = 1, pretrained: bool = Fals
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resunet("c_resunet", n_features_start=n_features_start, n_out=n_out, pretrained=pretrained,
+    return _resunet(arch=arch, n_features_start=n_features_start, n_out=n_out, pretrained=pretrained,
                     progress=progress, **kwargs)
