@@ -23,6 +23,8 @@ from pathlib import Path
 import fluocells as fluo
 
 REPO_PATH = Path(fluo.__path__[0]).parent
+
+# data
 DATA_PATH_r = REPO_PATH / 'dataset/red'
 DATA_PATH_y = REPO_PATH / 'dataset/yellow'
 DATA_PATH_g = REPO_PATH / 'dataset/green'
@@ -39,3 +41,6 @@ IMG_PATH_unlabelled_g = DATA_PATH_g / 'unlabelled'
 # DATA_DEBUG_PATH.mkdir(exist_ok=True, parents=True)
 TRAIN_PATH = REPO_PATH / 'dataset/fluocells-red-split/train'
 VAL_PATH = REPO_PATH / 'dataset/fluocells-red-split/valid'
+
+# models
+MODELS_PATH = REPO_PATH / 'models'
