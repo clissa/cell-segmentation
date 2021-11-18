@@ -1,0 +1,43 @@
+method: grid
+metric:
+  name: Validation Loss
+  goal: minimize
+name: DataLoader loss
+parameters:
+  batch_size:
+    distribution: categorical
+    values:
+      - 6
+      - 8
+      - 12
+      - 16
+      - 32
+  resize:
+    distribution: categorical
+    values:
+      - 224
+      - 440
+      - 512
+      - 768
+  encoder:
+    distribution: categorical
+    values:
+      - resnet18
+      - resnet34
+  loss_func:
+    distribution: categorical
+    values:
+      - CrossEntropyLossFlat
+      - DiceLoss
+      - FocalLoss
+      - CombinedLoss
+  pretrained:
+    distribution: constant
+    value: True
+  epochs:
+    distribution: constant
+    value: 10
+  log:
+    distribution: constant
+    value: True
+program: sweep.py

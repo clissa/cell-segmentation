@@ -1,6 +1,9 @@
 program: sweep.py
 name: sweep_resources
 method: random
+metric:
+  name: '_runtime'
+  goal: 'minimize'
 parameters:
   dls_workers:
     values: [ 0, 12, 24 ]
@@ -8,7 +11,7 @@ parameters:
     values: [ 16, 32 ]
   epochs:
     value: 2
-  learning_rate:
+  lr:
     value: 0.001
   encoder:
     value: "resnet18"
@@ -29,7 +32,7 @@ parameters:
   log_model:
     value: False
   multi_gpu:
-    values: [ True, False ]
+    values: [ True ]
 
 
 

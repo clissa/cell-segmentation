@@ -1,0 +1,31 @@
+method: grid
+metric:
+  name: Execution time
+  goal: minimize
+name: DataLoader runtime
+parameters:
+  batch_size:
+    distribution: categorical
+    values:
+      - 6
+      - 8
+      - 12
+      - 16
+      - 32
+  resize:
+    distribution: categorical
+    values:
+      - 224
+      - 440
+      - 512
+      - 768
+      - 1024
+  encoder:
+    distribution: categorical
+    values:
+      - resnet18
+      - resnet34
+  log:
+    distribution: constant
+    value: True
+program: sweep.py

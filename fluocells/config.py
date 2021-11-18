@@ -37,3 +37,5 @@ IMG_PATH_unlabelled_g = DATA_PATH_g / 'unlabelled'
 
 # DATA_DEBUG_PATH = DATA_PATH / 'debug'
 # DATA_DEBUG_PATH.mkdir(exist_ok=True, parents=True)
+TRAIN_PATH = REPO_PATH / 'dataset/fluocells-red-split/train'
+VAL_PATH = REPO_PATH / 'dataset/fluocells-red-split/valid'
