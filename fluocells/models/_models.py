@@ -19,7 +19,7 @@ from fluocells.config import MODELS_PATH
 
 
 class ResUnet(nn.Module):
-    def __init__(self, n_features_start=4, n_out=1):
+    def __init__(self, n_features_start=16, n_out=1):
         super(ResUnet, self).__init__()
         pool_ks, pool_stride, pool_pad = 2, 2, 0
 
@@ -28,40 +28,40 @@ class ResUnet(nn.Module):
             3, 1, kernel_size=1, padding=0)
 
         # block 1
-        self.c1 = ConvBlock(1, 4 * n_features_start)
+        self.c1 = ConvBlock(1, n_features_start)
         self.p1 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 2
-        self.c2 = ConvResNetBlock(4 * n_features_start, 8 * n_features_start)
+        self.c2 = ConvResNetBlock(n_features_start, 2 * n_features_start)
         self.p2 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 3
-        self.c3 = ConvResNetBlock(8 * n_features_start, 16 * n_features_start)
+        self.c3 = ConvResNetBlock(2 * n_features_start, 4 * n_features_start)
         self.p3 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 4: BRIDGE START
-        self.c4 = ConvResNetBlock(16 * n_features_start, 32 *
+        self.c4 = ConvResNetBlock(4 * n_features_start, 32 *
                                   n_features_start, kernel_size=5, padding=2)
 
         # block 5: BRIDGE END
-        self.c5 = ResNetBlock(32 * n_features_start, 32 *
+        self.c5 = ResNetBlock(8 * n_features_start, 32 *
                               n_features_start, kernel_size=5, padding=2)
 
         # block 6
-        self.c6 = UpResNetBlock(n_in=32 * n_features_start,
-                                n_out=16 * n_features_start)
+        self.c6 = UpResNetBlock(n_in=8 * n_features_start,
+                                n_out=4 * n_features_start)
 
         # block 7
         self.c7 = UpResNetBlock(
-            16 * n_features_start, 8 * n_features_start)
+            4 * n_features_start, 2 * n_features_start)
 
         # block 8
         self.c8 = UpResNetBlock(
-            8 * n_features_start, 4 * n_features_start)
+            2 * n_features_start, n_features_start)
 
         # output
         self.output = Heatmap(
-            4 * n_features_start, n_out, kernel_size=1, stride=1, padding=0)
+            n_features_start, n_out, kernel_size=1, stride=1, padding=0)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
         c0 = self.colorspace(x)
@@ -109,7 +109,7 @@ def _resunet(
     return model
 
 
-def c_resunet(arch='c-ResUnet', n_features_start: int = 4, n_out: int = 1, pretrained: bool = False,
+def c_resunet(arch='c-ResUnet', n_features_start: int = 16, n_out: int = 1, pretrained: bool = False,
               progress: bool = True,
               **kwargs) -> ResUnet:
     r"""cResUnet model from `"Automating Cell Counting in Fluorescent Microscopy through Deep Learning with c-ResUnet"
