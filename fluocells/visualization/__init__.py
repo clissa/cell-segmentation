@@ -26,6 +26,7 @@ def plot_heatmap(img: torch.Tensor, mask: torch.Tensor, heatmap: torch.Tensor, f
     :param img: imgut image in torch format (B, C, H, W)
     :param mask: corresponding ground-truth mask
     :param heatmap: predicted heatmap
+    :param show: wheter to show the output
     :return:
     """
     img = img.to('cpu').permute(0, 2, 3, 1)
@@ -60,6 +61,7 @@ def plot_heatmap_from_folder(img_folder: Path, suptitle: bool = True, device: st
     :param img_folder: path where the images to be plotted are stored
     :param suptitle: whether to plot the image name as suptitle
     :param device: device to use for predictions
+    :param show: wheter to show the output
     :return:
     """
     model.to(device)
