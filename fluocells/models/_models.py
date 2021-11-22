@@ -19,7 +19,7 @@ from fluocells.config import MODELS_PATH
 
 
 class ResUnet(nn.Module):
-    def __init__(self, n_features_start=16, n_out=1):
+    def __init__(self, n_features_start=16, n_out=2):
         super(ResUnet, self).__init__()
         pool_ks, pool_stride, pool_pad = 2, 2, 0
 
@@ -60,7 +60,7 @@ class ResUnet(nn.Module):
             2 * n_features_start, n_features_start)
 
         # output
-        self.output = Heatmap(
+        self.output = Heatmap2d(
             n_features_start, n_out, kernel_size=1, stride=1, padding=0)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
@@ -109,7 +109,7 @@ def _resunet(
     return model
 
 
-def c_resunet(arch='c-ResUnet', n_features_start: int = 16, n_out: int = 1, pretrained: bool = False,
+def c_resunet(arch='c-ResUnet', n_features_start: int = 16, n_out: int = 2, pretrained: bool = False,
               progress: bool = True,
               **kwargs) -> ResUnet:
     r"""cResUnet model from `"Automating Cell Counting in Fluorescent Microscopy through Deep Learning with c-ResUnet"
