@@ -11,7 +11,7 @@
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
 __all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ConvResNetBlock', 'ResNetBlock', 'UpResNetBlock',
-           'Heatmap']
+           'Heatmap', 'Heatmap2d']
 
 from fastai.vision.all import *
 
@@ -111,3 +111,15 @@ class Heatmap(nn.Module):
 
     def forward(self, x):
         return self.act(self.conv_block(x))
+
+
+class Heatmap2d(nn.Module):
+    def __init__(self, n_in, n_out=2, kernel_size=1, stride=1, padding=0, concat_dim=1):
+        super(Heatmap2d, self).__init__()
+        self.heatmap = Heatmap(n_in, n_out - 1, kernel_size, stride, padding)
+        self.concat = Concatenate(dim=concat_dim)
+
+    def forward(self, x):
+        heatmap1 = self.heatmap(x)
+        heatmap0 = torch.ones_like(heatmap1) - heatmap1
+        return self.concat([heatmap0, heatmap1])
