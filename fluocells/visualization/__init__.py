@@ -21,7 +21,7 @@ from fluocells.models._utils import load_model
 model = load_model('c-ResUnet')
 
 
-def plot_heatmap(img: torch.Tensor, mask: torch.Tensor, heatmap: torch.Tensor, fig=None, axes=None):
+def plot_heatmap(img: torch.Tensor, mask: torch.Tensor, heatmap: torch.Tensor, fig=None, axes=None, show=False):
     """
     Plot original image with mask's contours besides predicted heatmap
     :param img: imgut image in torch format (B, C, H, W)
@@ -50,11 +50,12 @@ def plot_heatmap(img: torch.Tensor, mask: torch.Tensor, heatmap: torch.Tensor, f
     cbar.ax.tick_params(labelsize=12)
     # cbar.ax.ticks=([0, 0.2, 0.4, 0.6, 0.8, 0.9])
     axes[1].set_title('Predicted heatmap')
-    plt.show()
+    if show:
+        plt.show()
     return fig
 
 
-def plot_heatmap_from_folder(img_folder: Path, suptitle: bool = True, device: str = 'cpu'):
+def plot_heatmap_from_folder(img_folder: Path, suptitle: bool = True, device: str = 'cpu', show=True):
     """
     Loop through images folder and plot original with maks's contours besides predicted heatmap.
     :param img_folder: path where the images to be plotted are stored
@@ -76,6 +77,7 @@ def plot_heatmap_from_folder(img_folder: Path, suptitle: bool = True, device: st
             heatmap = np.squeeze(model(img)).to('cpu')
 
         # plot
-        fig, axes = plt.subplots(1, 2, figsize=(20, 6))
+        fig = plot_heatmap(img, mask, heatmap, show=False)
         if suptitle: fig.suptitle(img_path.name)
-        plot_heatmap(img, mask, heatmap, fig=fig, axes=axes)
+        if show:
+            plt.show()
