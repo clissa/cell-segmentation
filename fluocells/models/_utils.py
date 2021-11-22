@@ -54,9 +54,13 @@ def tfm_keras_weights(keras_w):
     return torch_w
 
 
-def copy_weights_k2pt(model, k_dict, pt_dict):
+def copy_weights_k2pt(model, k_dict, pt_dict, freeze=True):
     for pt_key, k_weight in zip(pt_dict.keys(), k_dict.values()):
-        rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
+        if freeze:
+            with torch.no_grad():
+                rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
+        else:
+            rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
 
 
 def state_dict_Kformat(d):
