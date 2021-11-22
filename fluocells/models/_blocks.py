@@ -45,10 +45,10 @@ class ConvBlock(nn.Module):
     def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
         super(ConvBlock, self).__init__()
         self.block = nn.Sequential(
-            nn.BatchNorm2d(n_in),
+            nn.BatchNorm2d(n_in, momentum=0.01, eps=0.001),
             nn.ELU(),
             nn.Conv2d(n_in, n_out, kernel_size, stride, padding),
-            nn.BatchNorm2d(n_out),
+            nn.BatchNorm2d(n_out, momentum=0.01, eps=0.001),
             nn.ELU(),
             nn.Conv2d(n_out, n_out, kernel_size, stride, padding),
         )
