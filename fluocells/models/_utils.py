@@ -10,7 +10,7 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ["save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt"]
+__all__ = ["save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "get_layer_name"]
 
 import functools
 import pickle
@@ -28,6 +28,22 @@ def load_pkl(path):
     with open(path, 'rb') as f:
         d = pickle.load(f)
         return d
+
+
+def load_model(arch: str = 'c-ResUnet', mode: str = 'eval'):
+    from fluocells.models import c_resunet
+    # arch = 'c-ResUnet_noWM'
+    model = c_resunet(arch=arch, n_features_start=4,
+                      n_out=1, pretrained=True)
+    # for m in model.modules():
+    #     for child in m.children():
+    #         if type(child) == nn.BatchNorm2d:
+    #             child.track_running_stats = False
+    #             child.running_mean = None
+    #             child.running_var = None
+    if mode == 'eval':
+        model.eval()
+    return model
 
 
 def rsetattr(obj, attr, val):
