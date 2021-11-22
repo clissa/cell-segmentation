@@ -43,10 +43,10 @@ def plot_heatmap(img: torch.Tensor, mask: torch.Tensor, heatmap: torch.Tensor, f
     im = axes[1].imshow(heatmap, cmap='jet', aspect="auto")  # y-axis oriented as img
     # im = axes[1].pcolormesh(np.flipud(heatmap), cmap='jet')  # y-axis flipped upside-down
     divider = make_axes_locatable(axes[1])
-    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar_ax = divider.append_axes("right", size="5%", pad=0.05)
 
     # get colorbar to set params
-    cbar = fig.colorbar(im, cax=cax)
+    cbar = fig.colorbar(im, cax=cbar_ax)
     cbar.ax.tick_params(labelsize=12)
     # cbar.ax.ticks=([0, 0.2, 0.4, 0.6, 0.8, 0.9])
     axes[1].set_title('Predicted heatmap')
