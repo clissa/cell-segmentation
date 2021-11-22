@@ -59,9 +59,6 @@ class ResUnet(nn.Module):
         self.c8 = UpResNetBlock(
             8 * n_features_start, 4 * n_features_start)
 
-        # heatmap
-        #         self.heatmap = Heatmap(n_in=4*n_features_start, n_out=1)
-
         # output
         self.output = Heatmap(
             4 * n_features_start, n_out, kernel_size=1, stride=1, padding=0)
@@ -101,8 +98,6 @@ def _resunet(
     model.__name__ = arch
     # TODO: implement weights fetching if not present
     if pretrained:
-        # print('Pretraining still to implement. Nothing done!')
-        # pass
         weights_path = MODELS_PATH / f"{arch}_state_dict.pkl"
         print('loading pretrained Keras weights from', weights_path)
         keras_weights = load_pkl(weights_path)
