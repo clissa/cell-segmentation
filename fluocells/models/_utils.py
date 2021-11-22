@@ -10,7 +10,8 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ["save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "get_layer_name"]
+__all__ = ["save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "load_model", "get_features",
+           "get_layer_name"]
 
 import functools
 import pickle
@@ -103,3 +104,26 @@ def state_dict_Kformat(d):
     fixed = OrderedDict(
         {k: v for k, v in d.items() if not 'num_batches_tracked' in k})
     return fixed
+
+
+def get_layer_name(layer, idx):
+    if isinstance(layer, torch.nn.Conv2d):
+        layer_name = 'Conv2d_{}_{}x{}'.format(
+            idx, layer.in_channels, layer.out_channels
+        )
+    elif isinstance(layer, torch.nn.ConvTranspose2d):
+        layer_name = 'ConvT2d_{}_{}x{}'.format(
+            idx, layer.in_channels, layer.out_channels
+        )
+    elif isinstance(layer, torch.nn.BatchNorm2d):
+        layer_name = 'BatchNorm2D_{}_{}'.format(
+            idx, layer.num_features)
+    elif isinstance(layer, torch.nn.Linear):
+        layer_name = 'Linear_{}_{}x{}'.format(
+            idx, layer.in_features, layer.out_features
+        )
+    else:
+        layer_name = "Activation_{}".format(idx)
+    # idx += 1
+    # return layer_name, idx
+    return layer_name
