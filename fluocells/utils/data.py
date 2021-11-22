@@ -28,8 +28,26 @@ from matplotlib import pyplot as plt
 from skimage.measure import label, regionprops
 from skimage.morphology import remove_small_objects
 from tqdm import tqdm
+from fastai.vision.all import *
 
 pd.options.display.max_columns = 8
+
+
+class Batch(Transform):
+    def __init__(self):
+        self.order = 100
+
+    def encodes(self, x):
+        return torch.unsqueeze(x, 0)
+
+
+def label_func(p):
+    return Path(str(p).replace('images', 'masks'))
+
+
+def get_input_image(img_path, device):
+    tfms = Pipeline([PILImage.create, ToTensor(), IntToFloatTensor(), Batch()])
+    return tfms(img_path).to(device)
 
 
 def check_noise_in_masks(masks_path, debug_path):
