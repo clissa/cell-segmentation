@@ -17,6 +17,7 @@ import pickle
 from collections import OrderedDict
 
 import torch
+from torchvision.models.feature_extraction import create_feature_extractor
 
 
 def save_pkl(d, path):
@@ -77,6 +78,20 @@ def copy_weights_k2pt(model, k_dict, pt_dict, freeze=True):
                 rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
         else:
             rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
+
+
+def get_features(img: torch.Tensor, model, layer: list) -> dict:
+    """
+    Return dictionary with layer as key and features tensor as value.
+    :param img: input image in torch format and [0, 1.] range
+    :param model: torch model
+    :param layer: list containing the name of the layer in string format (as returned by torchvision.models.feature_extraction.get_graph_node_names)
+    :return: features dict
+    """
+    with torch.no_grad():
+        feature_extractor = create_feature_extractor(model, return_nodes=layer)
+        features = feature_extractor(img)
+    return features
 
 
 def state_dict_Kformat(d):
