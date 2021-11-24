@@ -58,11 +58,11 @@ class ResUnet(nn.Module):
             n_features_start, n_out, kernel_size=1, stride=1, padding=0)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
-        downpath = []
+        downblocks = []
         for lbl, layer in self.encoder.items():
             x = layer(x)
-            if 'block' in lbl: downpath.append(x)
-        for layer, long_connect in zip(self.decoder.values(), reversed(downpath)):
+            if 'block' in lbl: downblocks.append(x)
+        for layer, long_connect in zip(self.decoder.values(), reversed(downblocks)):
             x = layer(x, long_connect)
         return self.head(x)
 
