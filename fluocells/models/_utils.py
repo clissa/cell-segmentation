@@ -11,8 +11,7 @@
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
 __all__ = ["rgetattr", "rsetattr", "save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "load_model",
-           "get_features",
-           "get_layer_name"]
+           "get_features", "get_layer_name"]
 
 import functools
 import pickle
