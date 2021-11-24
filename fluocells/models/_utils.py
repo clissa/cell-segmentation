@@ -10,7 +10,8 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ["save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "load_model", "get_features",
+__all__ = ["rgetattr", "rsetattr", "save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "load_model",
+           "get_features",
            "get_layer_name"]
 
 import functools
@@ -18,8 +19,8 @@ import pickle
 from collections import OrderedDict
 
 import torch
+import fastai.layers
 from torchvision.models.feature_extraction import create_feature_extractor
-
 
 def save_pkl(d, path):
     with open(path, 'wb') as f:
@@ -107,6 +108,11 @@ def state_dict_Kformat(d):
 
 
 def get_layer_name(layer, idx):
+    # TODO: minimal implementation based on class name + idx
+    # type_str = str(type(layer))
+    # type_str = type_str.split('.')[1][:-2]
+    # return f"{type_str}_{idx}"
+
     if isinstance(layer, torch.nn.Conv2d):
         layer_name = 'Conv2d_{}_{}x{}'.format(
             idx, layer.in_channels, layer.out_channels
@@ -122,8 +128,10 @@ def get_layer_name(layer, idx):
         layer_name = 'Linear_{}_{}x{}'.format(
             idx, layer.in_features, layer.out_features
         )
+    elif isinstance(layer, fastai.layers.Identity):
+        layer_name = 'Identity'
     else:
         layer_name = "Activation_{}".format(idx)
     # idx += 1
     # return layer_name, idx
-    return layer_name
+    return '_'.join(layer_name.split('_')[:2]).lower()
