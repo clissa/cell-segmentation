@@ -14,7 +14,7 @@ __all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ConvResNetBlock', '
            'Heatmap', 'Heatmap2d']
 
 from fastai.vision.all import *
-
+from ._utils import *
 
 # Utils
 def _get_ltype(layer):
@@ -41,20 +41,48 @@ class Concatenate(nn.Module):
         return self.cat(x)
 
 
+# class ConvBlock(nn.Module):
+#     def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
+#         super(ConvBlock, self).__init__()
+#         self.block = nn.Sequential(
+#             nn.BatchNorm2d(n_in, momentum=0.01, eps=0.001),
+#             nn.ELU(),
+#             nn.Conv2d(n_in, n_out, kernel_size, stride, padding),
+#             nn.BatchNorm2d(n_out, momentum=0.01, eps=0.001),
+#             nn.ELU(),
+#             nn.Conv2d(n_out, n_out, kernel_size, stride, padding),
+#         )
+#
+#     def forward(self, x):
+#         return self.block(x)
+
+# TODO: commented parts should allow blocks numbering. Find a way to do it automatically and propagate to different blocks
 class ConvBlock(nn.Module):
-    def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
+    def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):  # , idb=1):
         super(ConvBlock, self).__init__()
-        self.block = nn.Sequential(
+
+        layers = [
             nn.BatchNorm2d(n_in, momentum=0.01, eps=0.001),
             nn.ELU(),
             nn.Conv2d(n_in, n_out, kernel_size, stride, padding),
             nn.BatchNorm2d(n_out, momentum=0.01, eps=0.001),
             nn.ELU(),
             nn.Conv2d(n_out, n_out, kernel_size, stride, padding),
-        )
+        ]
+        # self.idb = idb
+        self._init_block(layers)
 
     def forward(self, x):
-        return self.block(x)
+        for layer in self.conv_block.values():
+            x = layer(x)
+        return x
+
+    def _init_block(self, layers):
+        # self.add_module(f"conv_block{self.idb}", nn.ModuleDict())
+        self.conv_block = nn.ModuleDict()
+        for idx, layer in enumerate(layers):
+            self.add_module(get_layer_name(layer, idx), layer)
+            # getattr(self, f"conv_block{self.idb}")[get_layer_name(layer, idx)] = layer
 
 
 class ConvResNetBlock(nn.Module):
