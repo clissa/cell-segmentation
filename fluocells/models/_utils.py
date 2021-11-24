@@ -10,7 +10,7 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ["rgetattr", "rsetattr", "save_pkl", "load_pkl", "state_dict_Kformat", "copy_weights_k2pt", "load_model",
+__all__ = ["rgetattr", "rsetattr", "save_pkl", "load_pkl", "pt2k_state_dict", "transfer_weights", "load_model",
            "get_features", "get_layer_name"]
 
 import functools
@@ -60,7 +60,7 @@ def rgetattr(obj, attr, *args):
     return functools.reduce(_getattr, [obj] + attr.split('.'))
 
 
-def tfm_keras_weights(keras_w):
+def k2pt_weights(keras_w):
     k_w = keras_w.copy()
     if k_w.ndim == 4:  # convolution filter
         torch_w = torch.from_numpy(k_w.transpose((3, 2, 0, 1)))
@@ -72,13 +72,13 @@ def tfm_keras_weights(keras_w):
     return torch_w
 
 
-def copy_weights_k2pt(model, k_dict, pt_dict, freeze=True):
+def transfer_weights(model, k_dict, pt_dict, freeze=True):
     for pt_key, k_weight in zip(pt_dict.keys(), k_dict.values()):
         if freeze:
             with torch.no_grad():
-                rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
+                rsetattr(model, f'{pt_key}.data', k2pt_weights(k_weight))
         else:
-            rsetattr(model, f'{pt_key}.data', tfm_keras_weights(k_weight))
+            rsetattr(model, f'{pt_key}.data', k2pt_weights(k_weight))
 
 
 def get_features(img: torch.Tensor, model, layer: list) -> dict:
@@ -95,7 +95,7 @@ def get_features(img: torch.Tensor, model, layer: list) -> dict:
     return features
 
 
-def state_dict_Kformat(d):
+def pt2k_state_dict(d):
     """
     Return state_dict without PyTorch-specific layers. This makes it comparable with Keras weight format
     :param d: pytorch model state_dict
