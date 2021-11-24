@@ -59,11 +59,11 @@ class ResUnet(nn.Module):
 
     def _forward_impl(self, x: Tensor) -> Tensor:
         c0 = self.colorspace(x)
-        c1 = self.c1(c0)
+        c1 = self.conv_block(c0)
         p1 = self.pool1(c1)
-        c2 = self.c2(p1)
+        c2 = self.residual_block1(p1)
         p2 = self.pool2(c2)
-        c3 = self.c3(p2)
+        c3 = self.residual_block2(p2)
         p3 = self.pool3(c3)
         bottleneck = self.bottleneck(p3)
         c6 = self.c6(bottleneck, c3)
