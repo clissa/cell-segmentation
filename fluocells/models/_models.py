@@ -42,15 +42,15 @@ class ResUnet(nn.Module):
         self.bottleneck = Bottleneck(4 * n_features_start, 32 * n_features_start, kernel_size=5, padding=2)
 
         # block 6
-        self.c6 = UpResidualBlock(n_in=8 * n_features_start,
-                                  n_out=4 * n_features_start)
+        self.upconv_block1 = UpResidualBlock(n_in=8 * n_features_start,
+                                             n_out=4 * n_features_start)
 
         # block 7
-        self.c7 = UpResidualBlock(
+        self.upconv_block2 = UpResidualBlock(
             4 * n_features_start, 2 * n_features_start)
 
         # block 8
-        self.c8 = UpResidualBlock(
+        self.upconv_block3 = UpResidualBlock(
             2 * n_features_start, n_features_start)
 
         # output
@@ -66,9 +66,9 @@ class ResUnet(nn.Module):
         c3 = self.residual_block2(p2)
         p3 = self.pool3(c3)
         bottleneck = self.bottleneck(p3)
-        c6 = self.c6(bottleneck, c3)
-        c7 = self.c7(c6, c2)
-        c8 = self.c8(c7, c1)
+        c6 = self.upconv_block1(bottleneck, c3)
+        c7 = self.upconv_block2(c6, c2)
+        c8 = self.upconv_block3(c7, c1)
         output = self.output(c8)
 
         return output
