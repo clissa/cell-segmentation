@@ -85,19 +85,28 @@ class ConvBlock(nn.Module):
             # getattr(self, f"conv_block{self.idb}")[get_layer_name(layer, idx)] = layer
 
 
-class ConvResNetBlock(nn.Module):
-    def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
-        super(ConvResNetBlock, self).__init__()
-        self.conv_block = ConvBlock(
-            n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.short_connect = nn.Conv2d(n_in, n_out, kernel_size=1, padding=0)
-        self.resnet_block = Add()
+class IdentityPath(nn.Module):
+    def __init__(self, n_in: int, n_out: int, is_conv: bool = True, upsample: bool = False):
+        super(IdentityPath, self).__init__()
+
+        self.is_conv = is_conv
+        self.upsample = upsample
+
+        # TODO:
+        #  1) find elegant way to deal with is_conv=False, upsample=True; currently returns ConvT2d
+        #  2) implement up_conv + concatenate directly here
+        if upsample:
+            layer = nn.ConvTranspose2d(n_in, n_out, kernel_size=2, stride=2, padding=0)
+        elif is_conv:
+            layer = nn.Conv2d(n_in, n_out, kernel_size=1, padding=0)
+        else:
+            layer = Identity()
+        self.layer_name = get_layer_name(layer, 1)
+        self.add_module(self.layer_name, layer)
 
     def forward(self, x):
-        conv_block = self.conv_block(x)
-        short_connect = self.short_connect(x)
-        resnet_block = self.resnet_block(conv_block, short_connect)
-        return resnet_block
+        return getattr(self, self.layer_name)(x)
+
 
 
 class ResNetBlock(nn.Module):
