@@ -10,7 +10,7 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ConvResNetBlock', 'ResNetBlock', 'UpResNetBlock',
+__all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ResidualBlock', 'UpResNetBlock',
            'Heatmap', 'Heatmap2d']
 
 from fastai.vision.all import *
@@ -108,18 +108,49 @@ class IdentityPath(nn.Module):
         return getattr(self, self.layer_name)(x)
 
 
+# class ConvResNetBlock(nn.Module):
+#     def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
+#         super(ConvResNetBlock, self).__init__()
+#         self.conv_block = ConvBlock(
+#             n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
+#         self.short_connect = nn.Conv2d(n_in, n_out, kernel_size=1, padding=0)
+#         self.resnet_block = Add()
+#
+#     def forward(self, x):
+#         conv_block = self.conv_block(x)
+#         short_connect = self.short_connect(x)
+#         resnet_block = self.resnet_block(conv_block, short_connect)
+#         return resnet_block
+#
+#
+# class ResNetBlock(nn.Module):
+#     def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
+#         super(ResNetBlock, self).__init__()
+#         self.conv_block = ConvBlock(
+#             n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
+#         self.resnet_block = Add()
+#
+#     def forward(self, x1, x2):
+#         conv_block = self.conv_block(x1)
+#         resnet_block = self.resnet_block(conv_block, x2)
+#         return resnet_block
 
-class ResNetBlock(nn.Module):
-    def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1):
-        super(ResNetBlock, self).__init__()
-        self.conv_block = ConvBlock(
-            n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.resnet_block = Add()
 
-    def forward(self, x1, x2):
-        conv_block = self.conv_block(x1)
-        resnet_block = self.resnet_block(conv_block, x2)
-        return resnet_block
+class ResidualBlock(nn.Module):
+    def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1, is_conv=True):
+        super(ResidualBlock, self).__init__()
+
+        self.is_conv = is_conv
+        self.conv_path = ConvBlock(n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.add_module('id_path', nn.Conv2d(n_in, n_out, kernel_size=1, padding=0) if self.is_conv else Identity())
+        print(n_in, n_out, is_conv)
+        self.id_path = IdentityPath(n_in, n_out, is_conv=is_conv)
+        self.add = Add()
+
+    def forward(self, x):
+        conv_path = self.conv_path(x)
+        short_connect = self.id_path(x)
+        return self.add(conv_path, short_connect)
 
 
 class UpResNetBlock(nn.Module):
