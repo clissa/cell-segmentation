@@ -54,7 +54,7 @@ class ResUnet(nn.Module):
         })
 
         # output
-        self.output = Heatmap2d(
+        self.head = Heatmap2d(
             n_features_start, n_out, kernel_size=1, stride=1, padding=0)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
@@ -64,10 +64,7 @@ class ResUnet(nn.Module):
             if 'block' in lbl: downpath.append(x)
         for layer, long_connect in zip(self.decoder.values(), reversed(downpath)):
             x = layer(x, long_connect)
-
-        output = self.output(x)
-
-        return output
+        return self.head(x)
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
