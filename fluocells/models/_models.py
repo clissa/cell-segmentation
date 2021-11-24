@@ -24,39 +24,38 @@ class ResUnet(nn.Module):
         pool_ks, pool_stride, pool_pad = 2, 2, 0
 
         # colorspace transformation
-        self.colorspace = nn.Conv2d(
-            3, 1, kernel_size=1, padding=0)
+        self.colorspace = nn.Conv2d(3, 1, kernel_size=1, padding=0)
 
         # block 1
         self.c1 = ConvBlock(1, n_features_start)
         self.p1 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 2
-        self.c2 = ConvResNetBlock(n_features_start, 2 * n_features_start)
+        self.c2 = ResidualBlock(n_features_start, 2 * n_features_start, is_conv=True)
         self.p2 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 3
-        self.c3 = ConvResNetBlock(2 * n_features_start, 4 * n_features_start)
+        self.c3 = ResidualBlock(2 * n_features_start, 4 * n_features_start, is_conv=True)
         self.p3 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 4: BRIDGE START
-        self.c4 = ConvResNetBlock(4 * n_features_start, 32 *
-                                  n_features_start, kernel_size=5, padding=2)
+        self.c4 = ResidualBlock(4 * n_features_start, 32 *
+                                n_features_start, kernel_size=5, padding=2, is_conv=True)
 
         # block 5: BRIDGE END
-        self.c5 = ResNetBlock(8 * n_features_start, 32 *
-                              n_features_start, kernel_size=5, padding=2)
+        self.c5 = ResidualBlock(8 * n_features_start, 32 *
+                                n_features_start, kernel_size=5, padding=2, is_conv=False)
 
         # block 6
-        self.c6 = UpResNetBlock(n_in=8 * n_features_start,
-                                n_out=4 * n_features_start)
+        self.c6 = UpResidualBlock(n_in=8 * n_features_start,
+                                  n_out=4 * n_features_start)
 
         # block 7
-        self.c7 = UpResNetBlock(
+        self.c7 = UpResidualBlock(
             4 * n_features_start, 2 * n_features_start)
 
         # block 8
-        self.c8 = UpResNetBlock(
+        self.c8 = UpResidualBlock(
             2 * n_features_start, n_features_start)
 
         # output
@@ -72,7 +71,7 @@ class ResUnet(nn.Module):
         c3 = self.c3(p2)
         p3 = self.p3(c3)
         c4 = self.c4(p3)
-        c5 = self.c5(c4, c4)
+        c5 = self.c5(c4)
         c6 = self.c6(c5, c3)
         c7 = self.c7(c6, c2)
         c8 = self.c8(c7, c1)
