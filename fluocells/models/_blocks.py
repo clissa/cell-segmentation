@@ -81,7 +81,7 @@ class ConvBlock(nn.Module):
         # self.add_module(f"conv_block{self.idb}", nn.ModuleDict())
         self.conv_block = nn.ModuleDict()
         for idx, layer in enumerate(layers):
-            self.add_module(get_layer_name(layer, idx), layer)
+            self.conv_block.add_module(get_layer_name(layer, idx), layer)
             # getattr(self, f"conv_block{self.idb}")[get_layer_name(layer, idx)] = layer
 
 
