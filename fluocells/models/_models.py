@@ -87,9 +87,9 @@ def _resunet(
         weights_path = MODELS_PATH / f"{arch}_state_dict.pkl"
         print('loading pretrained Keras weights from', weights_path)
         keras_weights = load_pkl(weights_path)
-        Klike_state_dict = pt2k_state_dict(model.state_dict())
-        assert len(keras_weights) == len(Klike_state_dict)
-        transfer_weights(model, keras_weights, Klike_state_dict)
+        keras_state_dict = pt2k_state_dict(model.state_dict())
+        assert len(keras_weights) == len(keras_state_dict)
+        transfer_weights(model, keras_weights, keras_state_dict)
     #         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
     #         model.load_state_dict(state_dict)
     return model
