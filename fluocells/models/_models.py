@@ -23,24 +23,24 @@ class ResUnet(nn.Module):
         super(ResUnet, self).__init__()
         pool_ks, pool_stride, pool_pad = 2, 2, 0
 
-        # colorspace transformation
-        self.colorspace = nn.Conv2d(3, 1, kernel_size=1, padding=0)
+        self.encoder = nn.ModuleDict({
+            'colorspace': nn.Conv2d(3, 1, kernel_size=1, padding=0),
 
-        # block 1
-        self.conv_block = ConvBlock(1, n_features_start)
-        self.pool1 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
+            # block 1
+            'conv_block': ConvBlock(1, n_features_start),
+            'pool1': nn.MaxPool2d(pool_ks, pool_stride, pool_pad),
 
-        # block 2
-        self.residual_block1 = ResidualBlock(n_features_start, 2 * n_features_start, is_conv=True)
-        self.pool2 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
+            # block 2
+            'residual_block1': ResidualBlock(n_features_start, 2 * n_features_start, is_conv=True),
+            'pool2': nn.MaxPool2d(pool_ks, pool_stride, pool_pad),
 
-        # block 3
-        self.residual_block2 = ResidualBlock(2 * n_features_start, 4 * n_features_start, is_conv=True)
-        self.pool3 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
+            # block 3
+            'residual_block2': ResidualBlock(2 * n_features_start, 4 * n_features_start, is_conv=True),
+            'pool3': nn.MaxPool2d(pool_ks, pool_stride, pool_pad),
 
-        # bottleneck
-        self.bottleneck = Bottleneck(4 * n_features_start, 32 * n_features_start, kernel_size=5, padding=2)
-
+            # bottleneck
+            'bottleneck': Bottleneck(4 * n_features_start, 32 * n_features_start, kernel_size=5, padding=2),
+        })
         # block 6
         self.upconv_block1 = UpResidualBlock(n_in=8 * n_features_start,
                                              n_out=4 * n_features_start)
@@ -58,17 +58,13 @@ class ResUnet(nn.Module):
             n_features_start, n_out, kernel_size=1, stride=1, padding=0)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
-        c0 = self.colorspace(x)
-        c1 = self.conv_block(c0)
-        p1 = self.pool1(c1)
-        c2 = self.residual_block1(p1)
-        p2 = self.pool2(c2)
-        c3 = self.residual_block2(p2)
-        p3 = self.pool3(c3)
-        bottleneck = self.bottleneck(p3)
-        c6 = self.upconv_block1(bottleneck, c3)
-        c7 = self.upconv_block2(c6, c2)
-        c8 = self.upconv_block3(c7, c1)
+        downpath = []
+        for lbl, layer in self.encoder.items():
+            x = layer(x)
+            if 'block' in lbl: downpath.append(x)
+        c6 = self.upconv_block1(x, downpath[-1])
+        c7 = self.upconv_block2(c6, downpath[-2])
+        c8 = self.upconv_block3(c7, downpath[-3])
         output = self.output(c8)
 
         return output
