@@ -10,11 +10,12 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ResidualBlock', 'UpResidualBlock',
+__all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ResidualBlock', 'UpResidualBlock', "Bottleneck",
            'Heatmap', 'Heatmap2d']
 
 from fastai.vision.all import *
 from ._utils import *
+
 
 # Utils
 def _get_ltype(layer):
@@ -168,6 +169,19 @@ class ResidualBlock(nn.Module):
 #         up_resnet_block = self.up_resnet_block(
 #             self.conv_block(concat), short_connect)
 #         return up_resnet_block
+
+
+class Bottleneck(nn.Module):
+    def __init__(self, n_in, n_out, kernel_size=5, stride=1, padding=2):
+        super(Bottleneck, self).__init__()
+
+        self.residual_block1 = ResidualBlock(n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding,
+                                             is_conv=True)
+        self.residual_block2 = ResidualBlock(2 * n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding,
+                                             is_conv=False)
+
+    def forward(self, x):
+        return self.residual_block2(self.residual_block1(x))
 
 
 class UpResidualBlock(nn.Module):
