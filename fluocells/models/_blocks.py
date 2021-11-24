@@ -10,7 +10,7 @@
 #  #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  #See the License for the specific language governing permissions and
 #  #limitations under the License.
-__all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ResidualBlock', 'UpResNetBlock',
+__all__ = ['_get_ltype', 'Add', 'Concatenate', 'ConvBlock', 'ResidualBlock', 'UpResidualBlock',
            'Heatmap', 'Heatmap2d']
 
 from fastai.vision.all import *
@@ -153,22 +153,39 @@ class ResidualBlock(nn.Module):
         return self.add(conv_path, short_connect)
 
 
-class UpResNetBlock(nn.Module):
+# class UpResNetBlock(nn.Module):
+#     def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1, concat_dim=1):
+#         super(UpResNetBlock, self).__init__()
+#         self.up_conv = nn.ConvTranspose2d(
+#             n_in, n_out, kernel_size=2, stride=2, padding=0)
+#         self.concat = Concatenate(dim=concat_dim)
+#         self.conv_block = ConvBlock(
+#             n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
+#         self.up_resnet_block = Add()
+#
+#     def forward(self, x, long_connect):
+#         short_connect = self.up_conv(x)
+#         concat = self.concat([short_connect, long_connect])
+#         up_resnet_block = self.up_resnet_block(
+#             self.conv_block(concat), short_connect)
+#         return up_resnet_block
+
+
+class UpResidualBlock(nn.Module):
     def __init__(self, n_in, n_out, kernel_size=3, stride=1, padding=1, concat_dim=1):
-        super(UpResNetBlock, self).__init__()
-        self.up_conv = nn.ConvTranspose2d(
-            n_in, n_out, kernel_size=2, stride=2, padding=0)
-        self.concat = Concatenate(dim=concat_dim)
-        self.conv_block = ConvBlock(
+        super(UpResidualBlock, self).__init__()
+        self.id_path = nn.ModuleDict({
+            "up_conv": nn.ConvTranspose2d(n_in, n_out, kernel_size=2, stride=2, padding=0),
+            "concat": Concatenate(dim=concat_dim)
+        })
+        self.conv_path = ConvBlock(
             n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.up_resnet_block = Add()
+        self.add = Add()
 
     def forward(self, x, long_connect):
-        short_connect = self.up_conv(x)
-        concat = self.concat([short_connect, long_connect])
-        up_resnet_block = self.up_resnet_block(
-            self.conv_block(concat), short_connect)
-        return up_resnet_block
+        short_connect = self.id_path.up_conv(x)
+        concat = self.id_path.concat([short_connect, long_connect])
+        return self.add(self.conv_path(concat), short_connect)
 
 
 class Heatmap(nn.Module):
