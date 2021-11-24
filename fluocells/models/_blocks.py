@@ -190,11 +190,11 @@ class UpResidualBlock(nn.Module):
 class Heatmap(nn.Module):
     def __init__(self, n_in, n_out=1, kernel_size=1, stride=1, padding=0):
         super(Heatmap, self).__init__()
-        self.conv_block = nn.Conv2d(n_in, n_out, kernel_size, stride, padding)
+        self.conv2d = nn.Conv2d(n_in, n_out, kernel_size, stride, padding)
         self.act = nn.Sigmoid()
 
     def forward(self, x):
-        return self.act(self.conv_block(x))
+        return self.act(self.conv2d(x))
 
 
 class Heatmap2d(nn.Module):
