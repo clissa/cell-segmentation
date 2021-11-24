@@ -27,16 +27,16 @@ class ResUnet(nn.Module):
         self.colorspace = nn.Conv2d(3, 1, kernel_size=1, padding=0)
 
         # block 1
-        self.c1 = ConvBlock(1, n_features_start)
-        self.p1 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
+        self.conv_block = ConvBlock(1, n_features_start)
+        self.pool1 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 2
-        self.c2 = ResidualBlock(n_features_start, 2 * n_features_start, is_conv=True)
-        self.p2 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
+        self.residual_block1 = ResidualBlock(n_features_start, 2 * n_features_start, is_conv=True)
+        self.pool2 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 3
-        self.c3 = ResidualBlock(2 * n_features_start, 4 * n_features_start, is_conv=True)
-        self.p3 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
+        self.residual_block2 = ResidualBlock(2 * n_features_start, 4 * n_features_start, is_conv=True)
+        self.pool3 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
         # block 4: BRIDGE START
         self.c4 = ResidualBlock(4 * n_features_start, 32 *
@@ -65,11 +65,11 @@ class ResUnet(nn.Module):
     def _forward_impl(self, x: Tensor) -> Tensor:
         c0 = self.colorspace(x)
         c1 = self.c1(c0)
-        p1 = self.p1(c1)
+        p1 = self.pool1(c1)
         c2 = self.c2(p1)
-        p2 = self.p2(c2)
+        p2 = self.pool2(c2)
         c3 = self.c3(p2)
-        p3 = self.p3(c3)
+        p3 = self.pool3(c3)
         c4 = self.c4(p3)
         c5 = self.c5(c4)
         c6 = self.c6(c5, c3)
