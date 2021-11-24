@@ -38,13 +38,8 @@ class ResUnet(nn.Module):
         self.residual_block2 = ResidualBlock(2 * n_features_start, 4 * n_features_start, is_conv=True)
         self.pool3 = nn.MaxPool2d(pool_ks, pool_stride, pool_pad)
 
-        # block 4: BRIDGE START
-        self.c4 = ResidualBlock(4 * n_features_start, 32 *
-                                n_features_start, kernel_size=5, padding=2, is_conv=True)
-
-        # block 5: BRIDGE END
-        self.c5 = ResidualBlock(8 * n_features_start, 32 *
-                                n_features_start, kernel_size=5, padding=2, is_conv=False)
+        # bottleneck
+        self.bottleneck = Bottleneck(4 * n_features_start, 32 * n_features_start, kernel_size=5, padding=2)
 
         # block 6
         self.c6 = UpResidualBlock(n_in=8 * n_features_start,
@@ -70,9 +65,8 @@ class ResUnet(nn.Module):
         p2 = self.pool2(c2)
         c3 = self.c3(p2)
         p3 = self.pool3(c3)
-        c4 = self.c4(p3)
-        c5 = self.c5(c4)
-        c6 = self.c6(c5, c3)
+        bottleneck = self.bottleneck(p3)
+        c6 = self.c6(bottleneck, c3)
         c7 = self.c7(c6, c2)
         c8 = self.c8(c7, c1)
         output = self.output(c8)
