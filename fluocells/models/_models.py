@@ -41,17 +41,17 @@ class ResUnet(nn.Module):
             # bottleneck
             'bottleneck': Bottleneck(4 * n_features_start, 32 * n_features_start, kernel_size=5, padding=2),
         })
-        # block 6
-        self.upconv_block1 = UpResidualBlock(n_in=8 * n_features_start,
-                                             n_out=4 * n_features_start)
 
-        # block 7
-        self.upconv_block2 = UpResidualBlock(
-            4 * n_features_start, 2 * n_features_start)
+        self.decoder = nn.ModuleDict({
+            # block 6
+            'upconv_block1': UpResidualBlock(n_in=8 * n_features_start, n_out=4 * n_features_start),
 
-        # block 8
-        self.upconv_block3 = UpResidualBlock(
-            2 * n_features_start, n_features_start)
+            # block 7
+            'upconv_block2': UpResidualBlock(4 * n_features_start, 2 * n_features_start),
+
+            # block 8
+            'upconv_block3': UpResidualBlock(2 * n_features_start, n_features_start),
+        })
 
         # output
         self.output = Heatmap2d(
@@ -62,10 +62,10 @@ class ResUnet(nn.Module):
         for lbl, layer in self.encoder.items():
             x = layer(x)
             if 'block' in lbl: downpath.append(x)
-        c6 = self.upconv_block1(x, downpath[-1])
-        c7 = self.upconv_block2(c6, downpath[-2])
-        c8 = self.upconv_block3(c7, downpath[-3])
-        output = self.output(c8)
+        for layer, long_connect in zip(self.decoder.values(), reversed(downpath)):
+            x = layer(x, long_connect)
+
+        output = self.output(x)
 
         return output
 
