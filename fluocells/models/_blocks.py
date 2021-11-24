@@ -143,7 +143,6 @@ class ResidualBlock(nn.Module):
         self.is_conv = is_conv
         self.conv_path = ConvBlock(n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding)
         self.add_module('id_path', nn.Conv2d(n_in, n_out, kernel_size=1, padding=0) if self.is_conv else Identity())
-        print(n_in, n_out, is_conv)
         self.id_path = IdentityPath(n_in, n_out, is_conv=is_conv)
         self.add = Add()
 
