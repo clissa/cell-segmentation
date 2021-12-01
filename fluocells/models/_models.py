@@ -39,7 +39,7 @@ class ResUnet(nn.Module):
             'pool3': nn.MaxPool2d(pool_ks, pool_stride, pool_pad),
 
             # bottleneck
-            'bottleneck': Bottleneck(4 * n_features_start, 32 * n_features_start, kernel_size=5, padding=2),
+            'bottleneck': Bottleneck(4 * n_features_start, 8 * n_features_start, kernel_size=5, padding=2),
         })
 
         self.decoder = nn.ModuleDict({

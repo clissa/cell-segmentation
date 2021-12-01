@@ -177,7 +177,7 @@ class Bottleneck(nn.Module):
 
         self.residual_block1 = ResidualBlock(n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding,
                                              is_conv=True)
-        self.residual_block2 = ResidualBlock(2 * n_in, n_out, kernel_size=kernel_size, stride=stride, padding=padding,
+        self.residual_block2 = ResidualBlock(n_out, n_out, kernel_size=kernel_size, stride=stride, padding=padding,
                                              is_conv=False)
 
     def forward(self, x):
