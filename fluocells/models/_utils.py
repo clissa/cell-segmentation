@@ -35,8 +35,8 @@ def load_pkl(path):
 def load_model(arch: str = 'c-ResUnet', mode: str = 'eval'):
     from fluocells.models import c_resunet
     # arch = 'c-ResUnet_noWM'
-    model = c_resunet(arch=arch, n_features_start=4,
-                      n_out=1, pretrained=True)
+    model = c_resunet(arch=arch, n_features_start=16,
+                      n_out=2, pretrained=True)
     # for m in model.modules():
     #     for child in m.children():
     #         if type(child) == nn.BatchNorm2d:
