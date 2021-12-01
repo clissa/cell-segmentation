@@ -66,6 +66,15 @@ class ResUnet(nn.Module):
             x = layer(x, long_connect)
         return self.head(x)
 
+    def init_kaiming_normal(self, mode='fan_in'):
+        print('Initializing conv2d weights with Kaiming He normal')
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                m.weight = nn.init.kaiming_normal_(m.weight, mode=mode)
+            elif isinstance(m, nn.BatchNorm3d) or isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
 
@@ -92,6 +101,8 @@ def _resunet(
         transfer_weights(model, keras_weights, keras_state_dict)
     #         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
     #         model.load_state_dict(state_dict)
+    else:
+        model.init_kaiming_normal()
     return model
 
 
